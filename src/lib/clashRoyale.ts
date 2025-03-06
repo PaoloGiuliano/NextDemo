@@ -1,5 +1,6 @@
 export async function getPlayerInfo(playerTag: string) {
-  const formattedTag = playerTag.replace("#", "%23"); // Convert `#` to URL-safe format
+  // if player tag doesnt start with '#' add it first
+  const formattedTag = "%23" + playerTag.replace(/#/g, "").toUpperCase();
   const res = await fetch(
     `https://api.clashroyale.com/v1/players/${formattedTag}`,
     {
