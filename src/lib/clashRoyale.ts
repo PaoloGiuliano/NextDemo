@@ -2,7 +2,7 @@ export async function getPlayerInfo(playerTag: string) {
   // if player tag doesnt start with '#' add it first
   const formattedTag = "%23" + playerTag.replace(/#/g, "").toUpperCase();
   const res = await fetch(
-    `https://api.clashroyale.com/v1/players/${formattedTag}`,
+    `https://proxy.royaleapi.dev/v1/players/${formattedTag}`,
     {
       headers: {
         Authorization: `Bearer ${process.env.CLASH_ROYALE_API_KEY}`,
