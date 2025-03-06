@@ -2,26 +2,19 @@ import PlayerSearch from "./search";
 
 export default function PlayerPage() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Player Lookup</h1>
-      <PlayerSearch />
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="p-6">
+        <div className="flex justify-center items-center gap-8">
+          <ul className="p-4 list-decimal">
+            <p className="font-bold text-[20px] mb-4">Example Tags</p>
+            <li>908PRLR</li>
+            <li>98CJ8C09</li>
+            <li>PY9L2LC</li>
+            <li>C98JYRQ</li>
+          </ul>
+          <PlayerSearch />
+        </div>
+      </div>
     </div>
   );
 }
-
-// import { getPlayerInfo } from "@/lib/clashRoyale";
-
-// export default async function PlayerPage() {
-//   const playerTag = "#908PRLR"; // Replace with actual tag or get from search params
-//   const player = await getPlayerInfo(playerTag);
-
-//   return (
-
-//     <div>
-//       <h1>Player: {player.name}</h1>
-//       <p>Level: {player.expLevel}</p>
-//       <p>Trophies: {player.trophies}</p>
-//       <p>Clan: {player.clan?.name || "No Clan"}</p>
-//     </div>
-//   );
-// }
