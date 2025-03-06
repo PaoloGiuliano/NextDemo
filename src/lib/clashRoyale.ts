@@ -12,6 +12,8 @@ export async function getPlayerInfo(playerTag: string) {
   );
 
   if (!res.ok) {
+    const errorText = await res.text(); // Log the error body for more details
+    console.error("Error response body:", errorText);
     throw new Error("Failed to fetch player data");
   }
 
