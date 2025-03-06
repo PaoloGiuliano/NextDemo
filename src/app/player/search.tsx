@@ -35,6 +35,7 @@ export default function PlayerSearch() {
         setPlayer(data);
       }
     } catch (err) {
+      console.error(err);
       setError("Something went wrong.");
     }
   }
