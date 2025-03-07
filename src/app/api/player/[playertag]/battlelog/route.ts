@@ -23,7 +23,7 @@ export async function GET(
       options
     );
     return NextResponse.json(battlelog);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch battlelog" },
       { status: 500 }

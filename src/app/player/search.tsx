@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 // Define the player data structure
 interface Player {
@@ -130,10 +131,12 @@ export default function PlayerSearch() {
       {/* Player's Current Favourite Card */}
       <div className="flex items-center p-6 border-t border-gray-200">
         <div className="mr-4">
-          <img
+          <Image
             src={player.currentFavouriteCard.iconUrls.medium}
             alt={player.currentFavouriteCard.name}
-            className="h-30 rounded-lg"
+            width={80}
+            height={120}
+            className="rounded-lg h-30"
           />
         </div>
         <div>

@@ -23,7 +23,7 @@ export async function GET(
       options
     );
     return NextResponse.json(upcomingchests);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch upcomingchests" },
       { status: 500 }
