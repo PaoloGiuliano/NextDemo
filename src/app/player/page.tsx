@@ -8,8 +8,8 @@ export default function PlayerPage() {
 
       {/* Example tags positioned at the bottom-right */}
       <div className="absolute bottom-4 right-4 text-gray-500">
-        <p className="text-[2px]">Example Tags:</p>
-        <ul className="list-disc pl-5 text-sm sm:text-[3px]">
+        <p className="text-[10px]">Example Tags:</p>
+        <ul className="list-disc pl-5 text-[8px]">
           <li>908PRLR</li>
           <li>98CJ8C09</li>
           <li>PY9L2LC</li>
