@@ -1,5 +1,5 @@
 import { Player } from "../types";
-
+import Image from 'next/image';
 interface FavoriteCardProps {
   player: Player;
 }
@@ -12,7 +12,7 @@ export default function FavoriteCard({ player }: FavoriteCardProps) {
   return (
     <div className="flex items-center p-6 border-t border-gray-200 relative">
       <div className="mr-4">
-        <img
+        <Image
           src={player.currentFavouriteCard.iconUrls.medium}
           alt={player.currentFavouriteCard.name}
           width={80}
