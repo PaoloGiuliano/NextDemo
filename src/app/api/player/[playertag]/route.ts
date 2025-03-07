@@ -28,7 +28,7 @@ export async function GET(
     );
 
     return NextResponse.json(player);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch player" },
       { status: 500 }
