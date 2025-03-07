@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { fetcher } from "@/lib/clashRoyaleFetcher";
 
 const USERS_API_URL = `https://proxy.royaleapi.dev/v1/players/`;
@@ -8,7 +8,7 @@ const options = {
 };
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { playertag: string } }
 ) {
   const { playertag } = await params;
