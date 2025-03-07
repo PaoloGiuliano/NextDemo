@@ -7,6 +7,10 @@ const options = {
   cache: "no-store",
 };
 
+export const config = {
+  runtime: "edge",
+};
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ playertag: string }> }
@@ -22,8 +26,9 @@ export async function GET(
       `${USERS_API_URL}${formattedTag.toUpperCase()}`,
       options
     );
+
     return NextResponse.json(player);
-  } catch {
+  } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch player" },
       { status: 500 }
