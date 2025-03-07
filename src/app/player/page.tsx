@@ -7,9 +7,9 @@ export default function PlayerPage() {
       <PlayerSearch />
 
       {/* Example tags positioned at the bottom-right */}
-      <div className="absolute bottom-4 right-4 text-sm text-gray-500">
-        <p>Example Tags:</p>
-        <ul className="list-disc pl-5">
+      <div className="absolute bottom-4 right-4 text-gray-500">
+        <p className="text-sm sm:text-xs">Example Tags:</p>
+        <ul className="list-disc pl-5 text-sm sm:text-xs">
           <li>908PRLR</li>
           <li>98CJ8C09</li>
           <li>PY9L2LC</li>
