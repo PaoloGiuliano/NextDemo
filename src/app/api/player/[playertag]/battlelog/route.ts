@@ -9,9 +9,9 @@ const options = {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { playertag: string } }
+  { params }: { params: Promise<{ playertag: string }> }
 ) {
-  const { playertag } = params;
+  const { playertag } = await params;
 
   const formattedTag = playertag?.startsWith("#")
     ? `%23${playertag?.slice(1)}`
