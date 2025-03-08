@@ -2,7 +2,7 @@ import PlayerSearch from "./getPlayerInfo";
 
 export default function PlayerPage() {
   return (
-    <div className="flex flex-col justify-center items-center h-screen relative">
+    <div className="flex flex-col justify-center items-center min-h-screen relative">
       <h1 className="text-5xl p-3">Player Search</h1>
       <PlayerSearch />
 
