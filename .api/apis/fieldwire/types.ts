@@ -1,0 +1,22 @@
+import type { FromSchema } from 'json-schema-to-ts';
+import * as schemas from './schemas';
+
+export type BatchDeleteUsersFromAccountBodyParam = FromSchema<typeof schemas.BatchDeleteUsersFromAccount.body>;
+export type BatchUpdateUserAccountRoleBodyParam = FromSchema<typeof schemas.BatchUpdateUserAccountRole.body>;
+export type DeleteUserFromAccountMetadataParam = FromSchema<typeof schemas.DeleteUserFromAccount.metadata>;
+export type GenerateJwtForApiKeyBodyParam = FromSchema<typeof schemas.GenerateJwtForApiKey.body>;
+export type GenerateJwtForApiKeyResponse201 = FromSchema<typeof schemas.GenerateJwtForApiKey.response['201']>;
+export type GetAccountResponse200 = FromSchema<typeof schemas.GetAccount.response['200']>;
+export type GetUserByIdMetadataParam = FromSchema<typeof schemas.GetUserById.metadata>;
+export type GetUserByIdResponse200 = FromSchema<typeof schemas.GetUserById.response['200']>;
+export type GetUsersInAccountResponse200 = FromSchema<typeof schemas.GetUsersInAccount.response['200']>;
+export type InviteUserToAccountBodyParam = FromSchema<typeof schemas.InviteUserToAccount.body>;
+export type InviteUserToAccountResponse200 = FromSchema<typeof schemas.InviteUserToAccount.response['200']>;
+export type UpdateAccountBodyParam = FromSchema<typeof schemas.UpdateAccount.body>;
+export type UpdateAccountInfoForUserBodyParam = FromSchema<typeof schemas.UpdateAccountInfoForUser.body>;
+export type UpdateAccountInfoForUserMetadataParam = FromSchema<typeof schemas.UpdateAccountInfoForUser.metadata>;
+export type UpdateAccountInfoForUserResponse201 = FromSchema<typeof schemas.UpdateAccountInfoForUser.response['201']>;
+export type UpdateAccountResponse201 = FromSchema<typeof schemas.UpdateAccount.response['201']>;
+export type UpdateAccountUserProfileBodyParam = FromSchema<typeof schemas.UpdateAccountUserProfile.body>;
+export type UpdateAccountUserProfileMetadataParam = FromSchema<typeof schemas.UpdateAccountUserProfile.metadata>;
+export type UpdateAccountUserProfileResponse201 = FromSchema<typeof schemas.UpdateAccountUserProfile.response['201']>;
