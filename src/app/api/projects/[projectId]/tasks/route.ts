@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getBearerToken } from "@/app/lib/auth";
 
 export async function GET(context: { params: { projectId: string } }) {
