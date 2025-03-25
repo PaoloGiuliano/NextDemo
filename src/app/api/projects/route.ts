@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBearerToken } from "@/app/lib/auth";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const API_TOKEN = process.env.API_TOKEN as string;
 
   try {

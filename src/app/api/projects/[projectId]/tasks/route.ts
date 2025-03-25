@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBearerToken } from "@/app/lib/auth";
 
-export async function GET(
-  req: NextRequest,
-  context: { params: { projectId: string } }
-) {
+export async function GET(context: { params: { projectId: string } }) {
   const { projectId } = await context.params; // ✅ Await params
 
   if (!projectId) {
