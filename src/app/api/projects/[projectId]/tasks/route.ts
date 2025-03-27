@@ -12,7 +12,7 @@ export async function GET(
   let filters = "";
 
   const filterHandler = () => {
-    let filters = [];
+    const filters = [];
     if (floorplanId != "not_selected") {
       filters.push(`filters[floorplan_id_eq]=${floorplanId}`);
     }
