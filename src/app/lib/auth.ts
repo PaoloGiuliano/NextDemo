@@ -14,7 +14,7 @@ export async function getBearerToken(apiToken: string): Promise<string> {
     if (!response.ok) throw new Error("Failed to fetch bearer token");
 
     const data: { access_token: string } = await response.json();
-    console.log(data.access_token);
+    // console.log(data.access_token);
     return data.access_token;
   } catch (error) {
     console.error("Bearer Token Error:", (error as Error).message);

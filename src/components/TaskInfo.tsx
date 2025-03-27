@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Image from "next/image"; // Import Image component from next/image
 
 interface TaskProps {
   projectId: string | undefined;
@@ -23,8 +24,14 @@ interface Task {
 
 const TaskInfo: React.FC<TaskProps> = ({ projectId, floorplanId }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState<boolean>(false); // Loading state
+  const [error, setError] = useState<string | null>(null); // Error state
+
   const fetchTasks = async () => {
     if (!projectId) return;
+
+    setLoading(true); // Set loading to true when fetching
+    setError(null); // Reset error state
 
     try {
       const response = await fetch(
@@ -37,9 +44,13 @@ const TaskInfo: React.FC<TaskProps> = ({ projectId, floorplanId }) => {
       const tasks = await response.json();
       setTasks(tasks.map((task: Task) => ({ ...task, bubbles: [] })));
     } catch (error) {
+      setError("Error fetching tasks.");
       console.error("Error fetching tasks:", error);
+    } finally {
+      setLoading(false); // Set loading to false after fetch
     }
   };
+
   useEffect(() => {
     fetchTasks();
   }, [projectId, floorplanId]);
@@ -66,12 +77,19 @@ const TaskInfo: React.FC<TaskProps> = ({ projectId, floorplanId }) => {
   };
 
   return (
-    <div className="border border-cyan-500 bg-gray-900 rounded-lg shadow-md text-white">
-      <h2 className="text-2xl font-semibold">Tasks</h2>
+    <div className="border border-cyan-500 bg-gray-900 rounded-lg shadow-md text-white p-4">
+      <h2 className="text-2xl font-semibold mb-4">Tasks</h2>
+
+      {/* Show loading spinner when tasks are being fetched */}
+      {loading && <p className="text-gray-400">Loading tasks...</p>}
+
+      {/* Show error message if there was an error fetching tasks */}
+      {error && <p className="text-red-500">{error}</p>}
+
       {tasks.length > 0 ? (
         <ul className="space-y-4">
           {tasks.map((task) => (
-            <li key={task.id} className="bg-gray-800 rounded-lg shadow">
+            <li key={task.id} className="bg-gray-800 rounded-lg shadow p-4">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-medium">{task.name}</span>
                 <button
@@ -94,14 +112,14 @@ const TaskInfo: React.FC<TaskProps> = ({ projectId, floorplanId }) => {
                       .map((bubble) => (
                         <p
                           key={bubble.id}
-                          className={`rounded ${
+                          className={`rounded p-2 ${
                             bubble.kind === 1
                               ? "bg-gray-700 text-gray-300"
                               : "bg-black text-green-400 font-mono border border-gray-700"
                           }`}
                         >
                           {bubble.content}
-                          <br></br>
+                          <br />
                           {bubble.created_at}
                         </p>
                       ))}
@@ -118,10 +136,12 @@ const TaskInfo: React.FC<TaskProps> = ({ projectId, floorplanId }) => {
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          <img
+                          <Image
                             src={bubble.thumb_url}
                             alt="Bubble Image"
-                            className="w-12 h-12 object-cover rounded"
+                            width={48} // Specify width and height for Image component
+                            height={48}
+                            className="object-cover rounded"
                           />
                         </a>
                       ))}
