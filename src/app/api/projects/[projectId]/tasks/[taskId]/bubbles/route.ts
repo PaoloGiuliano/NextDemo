@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { getBearerToken } from "@/app/lib/auth";
 
-export async function GET(context: {
-  params: { projectId: string; taskId: string };
-}) {
-  const { projectId } = await context.params;
-  const { taskId } = await context.params;
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ projectId: string; taskId: string }> }
+) {
+  const { projectId } = await params;
+  const { taskId } = await params;
   const API_TOKEN = process.env.API_TOKEN as string;
 
   if (!taskId || !projectId) {

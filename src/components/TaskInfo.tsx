@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 interface TaskProps {
   projectId: string | undefined;
+  floorplanId: string | undefined;
 }
 
 interface Bubble {
@@ -11,6 +12,7 @@ interface Bubble {
   original_url: string;
   flattened_file_url: string;
   kind: number;
+  created_at: string;
 }
 
 interface Task {
@@ -19,14 +21,17 @@ interface Task {
   bubbles?: Bubble[];
 }
 
-const TaskInfo: React.FC<TaskProps> = ({ projectId }) => {
+const TaskInfo: React.FC<TaskProps> = ({ projectId, floorplanId }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
-
   const fetchTasks = async () => {
     if (!projectId) return;
 
     try {
-      const response = await fetch(`/api/projects/${projectId}/tasks`);
+      const response = await fetch(
+        `/api/projects/${projectId}/tasks?floorplanId=${
+          floorplanId ? floorplanId : "not_selected"
+        }&statusId=not_selected`
+      );
       if (!response.ok) throw new Error("Failed to fetch tasks");
 
       const tasks = await response.json();
@@ -35,10 +40,9 @@ const TaskInfo: React.FC<TaskProps> = ({ projectId }) => {
       console.error("Error fetching tasks:", error);
     }
   };
-
   useEffect(() => {
     fetchTasks();
-  }, [projectId]);
+  }, [projectId, floorplanId]);
 
   const fetchTaskBubble = async (taskId: string) => {
     if (!projectId) return;
@@ -62,17 +66,17 @@ const TaskInfo: React.FC<TaskProps> = ({ projectId }) => {
   };
 
   return (
-    <div className="p-4 bg-gray-900 rounded-lg shadow-md text-white">
-      <h2 className="text-2xl font-semibold mb-4">Tasks</h2>
+    <div className="border border-cyan-500 bg-gray-900 rounded-lg shadow-md text-white">
+      <h2 className="text-2xl font-semibold">Tasks</h2>
       {tasks.length > 0 ? (
         <ul className="space-y-4">
           {tasks.map((task) => (
-            <li key={task.id} className="p-4 bg-gray-800 rounded-lg shadow">
+            <li key={task.id} className="bg-gray-800 rounded-lg shadow">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-medium">{task.name}</span>
                 <button
                   onClick={() => fetchTaskBubble(task.id)}
-                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 transition"
+                  className="py-1 bg-blue-600 text-white rounded hover:bg-blue-500 transition"
                 >
                   See Bubble
                 </button>
@@ -90,13 +94,15 @@ const TaskInfo: React.FC<TaskProps> = ({ projectId }) => {
                       .map((bubble) => (
                         <p
                           key={bubble.id}
-                          className={`p-3 rounded ${
+                          className={`rounded ${
                             bubble.kind === 1
                               ? "bg-gray-700 text-gray-300"
                               : "bg-black text-green-400 font-mono border border-gray-700"
                           }`}
                         >
                           {bubble.content}
+                          <br></br>
+                          {bubble.created_at}
                         </p>
                       ))}
                   </div>

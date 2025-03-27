@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getBearerToken } from "@/app/lib/auth";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { floorplanId: string } }
-) {
-  const projectId = req.nextUrl.searchParams.get("projectId");
-  const floorplanId = params.floorplanId;
+export async function GET({
+  params,
+}: {
+  params: { projectId: string; floorplanId: string };
+}) {
+  const { projectId } = await params;
+  const { floorplanId } = await params;
   const API_TOKEN = process.env.API_TOKEN as string;
 
   if (!floorplanId || !projectId) {

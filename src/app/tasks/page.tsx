@@ -10,9 +10,19 @@ interface Project {
   name: string;
 }
 
+interface Floorplan {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [floorplans, setFloorplans] = useState<Floorplan[]>([]);
+  const [selectedFloorplan, setSelectedFloorplan] = useState<Floorplan | null>(
+    null
+  );
 
   const fetchProjects = async () => {
     try {
@@ -32,21 +42,45 @@ export default function Tasks() {
     }
   };
 
+  const handleFloorplanSelect = (floorplan: Floorplan) => {
+    setSelectedFloorplan(floorplan); // Update the selected project ID
+  };
+
+  const handleProjectSelect = (project: Project) => {
+    setSelectedProject(project); // Update the selected floorplan ID
+  };
+
+  const fetchFloorplans = async (project: Project | null) => {
+    try {
+      console.log(`attempting to fetch floorplans ${project?.id}`);
+      const response = await fetch(`/api/projects/${project?.id}/floorplans`);
+      if (!response.ok) throw new Error("Failed to fetch floorplans");
+      console.log(response);
+      const floorplans = await response.json();
+      setFloorplans(floorplans);
+    } catch (error) {
+      console.error("Error fetching floorplans:", error);
+      setFloorplans([]);
+    }
+  };
+
   useEffect(() => {
     fetchProjects(); // Fetch projects when the component mounts
   }, []);
-
-  const handleProjectSelect = (project: Project) => {
-    setSelectedProject(project); // Update the selected project ID
-  };
+  // Waiting for selectedProject to exist before fetching Floorplans
+  useEffect(() => {
+    if (selectedProject) {
+      console.log(selectedProject.id);
+      fetchFloorplans(selectedProject);
+    }
+  }, [selectedProject]);
 
   return (
-    <div>
-      <h1>Projects</h1>
+    <div className="w-[calc(100vw-18px)] border border-red-500">
       {/* Dropdown Component */}
-      <Menu as="div" className="relative inline-block text-left">
+      <Menu as="div" className="p-5 w-full relative text-left">
         <div>
-          <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50">
+          <MenuButton className="p-5 order-blue-500 inline-flex justify-center gap-x-1.5 rounded-md bg-white py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50">
             {selectedProject?.name}
             <ChevronDownIcon
               aria-hidden="true"
@@ -57,7 +91,7 @@ export default function Tasks() {
 
         <MenuItems
           transition
-          className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+          className="absolute left-0 z-10 mt-2 w-[50%] border border-pink-500 min-w-full origin-top-right rounded-md bg-white ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
         >
           <div className="py-1">
             {projects ? (
@@ -66,7 +100,7 @@ export default function Tasks() {
                   <a
                     href="#"
                     onClick={() => handleProjectSelect(project)} // Call the handler on select
-                    className={`block px-4 py-2 text-sm text-gray-700 ${
+                    className={`block py-2 text-sm text-gray-700 ${
                       selectedProject?.id === project.id
                         ? "bg-gray-100 text-gray-900" // Highlight the selected project
                         : "hover:bg-gray-100 hover:text-gray-900"
@@ -82,7 +116,63 @@ export default function Tasks() {
           </div>
         </MenuItems>
       </Menu>
-      <TaskInfo projectId={selectedProject?.id} />
+      {/* Dropdown Component for Floorplans */}
+      <Menu as="div" className="p-5 w-full relative text-left">
+        <div>
+          <MenuButton className="inline-flex justify-center gap-x-1.5 rounded-md bg-white py-2 px-5 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 shadow-xs hover:bg-gray-50">
+            {selectedFloorplan?.name ? (
+              selectedFloorplan.name // Show selected floorplan name
+            ) : (
+              <span className="text-gray-400">Select a floorplan</span> // Placeholder text
+            )}
+            <ChevronDownIcon
+              aria-hidden="true"
+              className="-mr-1 size-5 text-gray-400"
+            />
+          </MenuButton>
+          {selectedFloorplan && (
+            <button
+              onClick={() => {
+                setSelectedFloorplan(null);
+              }}
+              className="inline-flex justify-center items-center gap-x-1.5 rounded-md bg-white py-2 px-5 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 shadow-xs hover:bg-gray-50 border border-red-500 cursor-pointer m-2"
+            >
+              X
+            </button>
+          )}
+        </div>
+        <MenuItems
+          transition
+          className="m-5 absolute left-0 z-10 mt-2 w-[50%] max-h-60 overflow-y-auto origin-top-right rounded-md bg-white ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+        >
+          <div className="py-1">
+            {floorplans ? (
+              floorplans.map((floorplan) => (
+                <MenuItem key={floorplan.id}>
+                  <a
+                    href="#"
+                    onClick={() => handleFloorplanSelect(floorplan)}
+                    className={`block px-5 py-2 text-sm text-gray-700 ${
+                      selectedFloorplan?.id === floorplan.id
+                        ? "bg-gray-100 text-gray-900"
+                        : "hover:bg-gray-100 hover:text-gray-900"
+                    }`}
+                  >
+                    {floorplan.name} - {floorplan.description}
+                  </a>
+                </MenuItem>
+              ))
+            ) : (
+              <div>No floorplans available</div>
+            )}
+          </div>
+        </MenuItems>
+      </Menu>
+
+      <TaskInfo
+        projectId={selectedProject?.id}
+        floorplanId={selectedFloorplan?.id}
+      />
 
       {/* Display the selected project ID */}
       <div></div>
