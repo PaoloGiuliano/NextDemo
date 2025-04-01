@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import { getBearerToken } from "@/app/lib/auth";
 
-export async function GET() {
-  const API_TOKEN = process.env.API_TOKEN as string;
-
+export async function GET(request: Request) {
   try {
-    const bearerToken = await getBearerToken(API_TOKEN);
+    const { searchParams } = new URL(request.url);
+    const bearerToken = searchParams.get("access_token");
 
     const response = await fetch(
       "https://client-api.us.fieldwire.com/api/v3/account/projects",

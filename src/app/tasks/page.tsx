@@ -15,6 +15,11 @@ interface Floorplan {
   name: string;
   description: string;
 }
+interface Status {
+  id: string;
+  name: string;
+  color: string;
+}
 
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -23,10 +28,14 @@ export default function Tasks() {
   const [selectedFloorplan, setSelectedFloorplan] = useState<Floorplan | null>(
     null
   );
+  const [statuses, setStatuses] = useState<Status[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<Status | null>(null);
 
-  const fetchProjects = async () => {
+  const fetchProjects = async (access_token: string | null) => {
     try {
-      const response = await fetch("/api/projects");
+      const url = `/api/projects?access_token=${access_token}}`;
+
+      const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch projects");
 
       const projects = await response.json();
@@ -49,13 +58,17 @@ export default function Tasks() {
   const handleProjectSelect = (project: Project) => {
     setSelectedProject(project); // Update the selected floorplan ID
   };
-
-  const fetchFloorplans = async (project: Project | null) => {
+  const handleStatusSelect = (status: Status) => {
+    setSelectedStatus(status); // Update the selected status ID
+  };
+  const fetchFloorplans = async (
+    project: Project | null,
+    access_token: string | null
+  ) => {
     try {
-      console.log(`attempting to fetch floorplans ${project?.id}`);
-      const response = await fetch(`/api/projects/${project?.id}/floorplans`);
+      const url = `/api/projects/${project?.id}/floorplans?access_token=${access_token}`;
+      const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch floorplans");
-      console.log(response);
       const floorplans = await response.json();
       setFloorplans(floorplans);
     } catch (error) {
@@ -63,15 +76,37 @@ export default function Tasks() {
       setFloorplans([]);
     }
   };
+  const fetchStatuses = async (
+    project: Project | null,
+    access_token: string | null
+  ) => {
+    try {
+      const url = `/api/projects/${project?.id}/statuses?access_token=${access_token}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch statuses");
+      const statuses = await response.json();
+      setStatuses(statuses);
+    } catch (error) {
+      console.error("Error fetching floorplans:", error);
+      setStatuses([]);
+    }
+  };
 
   useEffect(() => {
-    fetchProjects(); // Fetch projects when the component mounts
+    fetchProjects(localStorage.getItem("Fieldwire_Access_Token")); // Fetch projects when the component mounts
   }, []);
+
   // Waiting for selectedProject to exist before fetching Floorplans
   useEffect(() => {
     if (selectedProject) {
-      console.log(selectedProject.id);
-      fetchFloorplans(selectedProject);
+      fetchFloorplans(
+        selectedProject,
+        localStorage.getItem("Fieldwire_Access_Token")
+      );
+      fetchStatuses(
+        selectedProject,
+        localStorage.getItem("Fieldwire_Access_Token")
+      );
     }
   }, [selectedProject]);
 
@@ -80,8 +115,8 @@ export default function Tasks() {
       {/* Dropdown Component */}
       <Menu as="div" className="p-5 w-full relative text-left">
         <div>
-          <MenuButton className="p-5 order-blue-500 inline-flex justify-center gap-x-1.5 rounded-md bg-white py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50">
-            {selectedProject?.name}
+          <MenuButton className="p-5 hover:cursor-pointer order-blue-500 inline-flex justify-center gap-x-1.5 rounded-md bg-white py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50">
+            {selectedProject?.name.toUpperCase()}
             <ChevronDownIcon
               aria-hidden="true"
               className="-mr-1 size-5 text-gray-400"
@@ -91,7 +126,7 @@ export default function Tasks() {
 
         <MenuItems
           transition
-          className="absolute left-0 z-10 mt-2 w-[50%] border border-pink-500 min-w-full origin-top-right rounded-md bg-white ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+          className="absolute left-0 z-10 mt-2 w-[50%] border min-w-full origin-top-right rounded-md bg-white ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
         >
           <div className="py-1">
             {projects ? (
@@ -106,7 +141,7 @@ export default function Tasks() {
                         : "hover:bg-gray-100 hover:text-gray-900"
                     }`}
                   >
-                    {project.name}
+                    {project.name.toUpperCase()}
                   </a>
                 </MenuItem>
               ))
@@ -119,7 +154,7 @@ export default function Tasks() {
       {/* Dropdown Component for Floorplans */}
       <Menu as="div" className="p-5 w-full relative text-left">
         <div>
-          <MenuButton className="inline-flex justify-center gap-x-1.5 rounded-md bg-white py-2 px-5 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 shadow-xs hover:bg-gray-50">
+          <MenuButton className="hover:cursor-pointer inline-flex justify-center gap-x-1.5 rounded-md bg-white py-2 px-5 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 shadow-xs hover:bg-gray-50">
             {selectedFloorplan?.name ? (
               selectedFloorplan.name // Show selected floorplan name
             ) : (
@@ -167,15 +202,66 @@ export default function Tasks() {
             )}
           </div>
         </MenuItems>
+        {/* Dropdown Component for Status */}
+        <Menu as="div" className="p-5 w-full relative text-left">
+          <div>
+            <MenuButton className="hover:cursor-pointer inline-flex justify-center gap-x-1.5 rounded-md bg-white py-2 px-5 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 shadow-xs hover:bg-gray-50">
+              {selectedStatus?.name ? (
+                selectedStatus.name.toUpperCase() // Show selected status name
+              ) : (
+                <span className="text-gray-400">Select a status</span> // Placeholder text
+              )}
+              <ChevronDownIcon
+                aria-hidden="true"
+                className="-mr-1 size-5 text-gray-400"
+              />
+            </MenuButton>
+            {selectedStatus && (
+              <button
+                onClick={() => {
+                  setSelectedStatus(null);
+                }}
+                className="inline-flex justify-center items-center gap-x-1.5 rounded-md bg-white py-2 px-5 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 shadow-xs hover:bg-gray-50 border border-red-500 cursor-pointer m-2"
+              >
+                X
+              </button>
+            )}
+          </div>
+          <MenuItems
+            transition
+            className="m-5 absolute left-0 z-10 mt-2 w-[50%] max-h-60 overflow-y-auto origin-top-right rounded-md bg-white ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+          >
+            <div className="py-1">
+              {statuses ? (
+                statuses.map((status) => (
+                  <MenuItem key={status.id}>
+                    <a
+                      style={{ color: status.color }} // set button color same as corresponding status color
+                      href="#"
+                      onClick={() => handleStatusSelect(status)}
+                      className={`block px-5 py-2 text-sm ${
+                        selectedStatus?.id === status.id
+                          ? "bg-gray-100 text-gray-900"
+                          : "hover:bg-gray-100 hover:text-gray-900"
+                      }`}
+                    >
+                      {status.name.toUpperCase()}
+                    </a>
+                  </MenuItem>
+                ))
+              ) : (
+                <div>No statuses available</div>
+              )}
+            </div>
+          </MenuItems>
+        </Menu>
       </Menu>
 
       <TaskInfo
         projectId={selectedProject?.id}
         floorplanId={selectedFloorplan?.id}
+        statusId={selectedStatus?.id}
       />
-
-      {/* Display the selected project ID */}
-      <div></div>
     </div>
   );
 }

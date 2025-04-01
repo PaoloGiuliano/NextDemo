@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { getBearerToken } from "@/app/lib/auth";
 
 export async function GET(
   request: Request,
@@ -7,8 +6,8 @@ export async function GET(
 ) {
   const { projectId } = await params;
   const { floorplanId } = await params;
-  const API_TOKEN = process.env.API_TOKEN as string;
-
+  const { searchParams } = new URL(request.url);
+  const access_token = searchParams.get("access_token");
   if (!floorplanId || !projectId) {
     return NextResponse.json(
       { error: "Missing projectId or floorplanId" },
@@ -17,8 +16,8 @@ export async function GET(
   }
 
   try {
-    const bearerToken = await getBearerToken(API_TOKEN);
-
+    // get bearerToken from page through localstorage
+    const bearerToken = access_token;
     const response = await fetch(
       `https://client-api.us.fieldwire.com/api/v3/projects/${projectId}/floorplans/${floorplanId}`,
       {

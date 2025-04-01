@@ -1,5 +1,5 @@
+import { register } from "module";
 import { NextRequest, NextResponse } from "next/server";
-import { getBearerToken } from "@/app/lib/auth";
 
 export async function GET(
   nrequest: NextRequest,
@@ -7,17 +7,22 @@ export async function GET(
 ) {
   const { projectId } = await params; // ✅ Await params
   const { searchParams } = new URL(nrequest.url);
+  const access_token = searchParams.get("access_token");
   const floorplanId = searchParams.get("floorplanId");
   const statusId = searchParams.get("statusId");
+  const x_last_synced_at = searchParams.get("last_synced_at");
   let filters = "";
 
   const filterHandler = () => {
     const filters = [];
-    if (floorplanId != "not_selected") {
+    if (floorplanId != "") {
       filters.push(`filters[floorplan_id_eq]=${floorplanId}`);
     }
-    if (statusId != "not_selected") {
+    if (statusId != "") {
       filters.push(`filters[status_id_eq]=${statusId}`);
+    }
+    if (x_last_synced_at != "") {
+      filters.push(`last_synced_at=${x_last_synced_at}`);
     }
     const filterQuery = filters.length > 0 ? `?${filters.join("&")}` : "";
     return filterQuery;
@@ -28,10 +33,8 @@ export async function GET(
   }
 
   try {
-    const API_TOKEN = process.env.API_TOKEN as string;
-    const bearerToken = await getBearerToken(API_TOKEN);
+    const bearerToken = access_token;
     filters = filterHandler();
-    console.log(filterHandler());
     const response = await fetch(
       `https://client-api.us.fieldwire.com/api/v3/projects/${projectId}/tasks${filters}`,
       {
@@ -41,7 +44,7 @@ export async function GET(
           "Content-Type": "application/json",
           "Fieldwire-Version": "2023-01-25",
           "Fieldwire-Filter": "active",
-          "Fieldwire-Per-Page": "100",
+          "Fieldwire-Per-Page": "5",
         },
       }
     );
@@ -51,9 +54,21 @@ export async function GET(
         `Failed to fetch tasks: ${response.status} ${response.statusText}`
       );
     }
-
-    const data = await response.json();
-    return NextResponse.json(data);
+    const apiData = await response.json();
+    const xLastSync = response.headers.get("X-Last-Synced-At") || "";
+    const xHasMore = response.headers.get("X-Has-More") || "";
+    return NextResponse.json(
+      {
+        data: apiData,
+      },
+      {
+        status: 200,
+        headers: {
+          "last-synced": xLastSync,
+          "has-more": xHasMore,
+        },
+      }
+    );
   } catch (error) {
     console.error("Error fetching tasks:", error);
     return NextResponse.json(
