@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Image from "next/image"; // Import Image component from next/image
 
@@ -35,6 +36,7 @@ const TaskInfo: React.FC<TaskProps> = ({
   const [pageSync, setPageSync] = useState<string[]>([]);
   const [pageNum, setPageNum] = useState<number>(0); // 0 is technically page 1 due to using arrays
   const [hasMorePages, setHasMorePages] = useState<boolean>(true);
+  // const router = useRouter();
 
   const fetchTasks = async (access_token: string | null) => {
     if (!projectId) return;
@@ -44,8 +46,6 @@ const TaskInfo: React.FC<TaskProps> = ({
 
     try {
       if (pageNum < 0) setPageNum(0);
-      console.log(pageSync[pageNum - 1]);
-      console.log(hasMorePages);
       const response = await fetch(
         `/api/projects/${projectId}/tasks?access_token=${access_token}&floorplanId=${
           floorplanId ? floorplanId : ""
@@ -61,7 +61,17 @@ const TaskInfo: React.FC<TaskProps> = ({
       if (xHasMore != null) setHasMorePages(xHasMore == "true" ? true : false);
       if (xLastSync && !pageSync.includes(xLastSync))
         setPageSync([...pageSync, xLastSync]);
-      setTasks(tasks.map((task: Task) => ({ ...task, bubbles: [] })));
+
+      const taskBubbles = await Promise.all(
+        tasks.map(async (task: Task) => {
+          const bubbles = await fetchTaskBubble(
+            task.id,
+            localStorage.getItem("Fieldwire_Access_Token")
+          );
+          return { ...task, bubbles };
+        })
+      );
+      setTasks(taskBubbles);
     } catch (error) {
       setError("Error fetching tasks.");
       console.error("Error fetching tasks:", error);
@@ -82,17 +92,15 @@ const TaskInfo: React.FC<TaskProps> = ({
       if (!response.ok) throw new Error("Failed to fetch bubbles");
 
       const bubbles = await response.json();
-
-      setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === taskId ? { ...task, bubbles } : task
-        )
-      );
+      return bubbles;
     } catch (error) {
       console.error("Error fetching task bubbles:", error);
     }
   };
 
+  useEffect(() => {
+    setPageNum(0);
+  }, [floorplanId, statusId]);
   useEffect(() => {
     accessTokenHandler(); //make sure access token is valid and updated in localstorage
     fetchTasks(localStorage.getItem("Fieldwire_Access_Token"));
@@ -181,118 +189,61 @@ const TaskInfo: React.FC<TaskProps> = ({
             <li key={task.id} className="bg-gray-800 rounded-lg shadow p-4">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-medium">{task.name}</span>
-                <button
-                  onClick={() =>
-                    fetchTaskBubble(
-                      task.id,
-                      localStorage.getItem("Fieldwire_Access_Token")
-                    )
-                  }
-                  className="py-1 bg-blue-600 text-white rounded hover:bg-blue-500 hover:cursor-pointer transition"
-                >
-                  See Bubble
-                </button>
+                {/* bubble stuff goes here i think maybe */}
               </div>
-
-              {/* ✅ Show only the bubbles for this specific task */}
-              {task.bubbles && task.bubbles.length > 0 && (
-                <div className="mt-2">
-                  {/* Display messages (TEXT & LOG) */}
-                  <div className="space-y-2">
-                    {task.bubbles
-                      .filter(
-                        (bubble) => bubble.kind === 1 || bubble.kind === 2
-                      ) // TEXT or LOG
-                      .map((bubble) => (
-                        <p
-                          key={bubble.id}
-                          className={`rounded p-2 ${
-                            bubble.kind === 1
-                              ? "bg-gray-700 text-gray-300"
-                              : "bg-black text-green-400 font-mono border border-gray-700"
-                          }`}
-                        >
-                          {bubble.content}
-                          <br />
-                          {bubble.created_at}
-                        </p>
-                      ))}
-                  </div>
-
-                  {/* Display images in a 6-column grid */}
-                  <div className="mt-4 grid grid-cols-6 gap-2">
-                    {task.bubbles
-                      .filter((bubble) => bubble.kind === 11) // PHOTO WITH ANNOTATIONS
-                      .map((bubble) => (
-                        <a
-                          key={bubble.id}
-                          href={bubble.original_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Image
-                            src={bubble.thumb_url}
-                            alt="Bubble Image"
-                            width={48} // Specify width and height for Image component
-                            height={48}
-                            className="object-cover rounded"
-                          />
-                        </a>
-                      ))}
-                  </div>
-                </div>
-              )}
             </li>
           ))}
         </ul>
       ) : (
         <p className="text-gray-400">No tasks found.</p>
       )}
-      <div className="flex justify-center items-center flex-row">
-        <button
-          disabled={pageNum < 1}
-          className="m-6 p-2 border bg-grey-400 rounded-2xl hover:cursor-pointer disabled:opacity-50"
-          onClick={() => {
-            navigatePage("back");
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="size-12 fill-emerald-600"
+      {tasks && (
+        <div className="flex justify-center items-center flex-row">
+          <button
+            disabled={pageNum < 1}
+            className="m-6 p-2 border bg-grey-400 rounded-2xl hover:cursor-pointer disabled:opacity-50"
+            onClick={() => {
+              navigatePage("back");
+            }}
           >
-            <path
-              fillRule="evenodd"
-              d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-4.28 9.22a.75.75 0 0 0 0 1.06l3 3a.75.75 0 1 0 1.06-1.06l-1.72-1.72h5.69a.75.75 0 0 0 0-1.5h-5.69l1.72-1.72a.75.75 0 0 0-1.06-1.06l-3 3Z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
-        <p className="m-6 p-2">Page {pageNum + 1}</p>
-        <p>{pageSync[pageNum]}</p>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="size-12 fill-emerald-600"
+            >
+              <path
+                fillRule="evenodd"
+                d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-4.28 9.22a.75.75 0 0 0 0 1.06l3 3a.75.75 0 1 0 1.06-1.06l-1.72-1.72h5.69a.75.75 0 0 0 0-1.5h-5.69l1.72-1.72a.75.75 0 0 0-1.06-1.06l-3 3Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+          <p className="m-6 p-2">Page {pageNum + 1}</p>
+          <p>{pageSync[pageNum]}</p>
 
-        <button
-          disabled={!hasMorePages}
-          className="m-6 p-2 border bg-grey-400 rounded-2xl hover:cursor-pointer disabled:opacity-50"
-          onClick={() => {
-            navigatePage("next");
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="size-12 fill-emerald-600"
+          <button
+            disabled={!hasMorePages}
+            className="m-6 p-2 border bg-grey-400 rounded-2xl hover:cursor-pointer disabled:opacity-50"
+            onClick={() => {
+              navigatePage("next");
+            }}
           >
-            <path
-              fillRule="evenodd"
-              d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm4.28 10.28a.75.75 0 0 0 0-1.06l-3-3a.75.75 0 1 0-1.06 1.06l1.72 1.72H8.25a.75.75 0 0 0 0 1.5h5.69l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3Z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
-      </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="size-12 fill-emerald-600"
+            >
+              <path
+                fillRule="evenodd"
+                d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm4.28 10.28a.75.75 0 0 0 0-1.06l-3-3a.75.75 0 1 0-1.06 1.06l1.72 1.72H8.25a.75.75 0 0 0 0 1.5h5.69l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
