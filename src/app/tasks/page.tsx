@@ -32,6 +32,7 @@ export default function Tasks() {
   const [selectedStatus, setSelectedStatus] = useState<Status | null>(null);
 
   const fetchProjects = async (access_token: string | null) => {
+    console.time("Fetch Projects from Page.tsx");
     try {
       const url = `/api/projects?access_token=${access_token}}`;
 
@@ -49,6 +50,8 @@ export default function Tasks() {
       console.error("Error fetching projects:", error);
       setProjects([]);
     }
+
+    console.timeEnd("Fetch Projects from Page.tsx");
   };
 
   const handleFloorplanSelect = (floorplan: Floorplan) => {
@@ -66,6 +69,7 @@ export default function Tasks() {
     access_token: string | null
   ) => {
     try {
+      console.time("Fetch Floorplans from Page.tsx");
       const url = `/api/projects/${project?.id}/floorplans?access_token=${access_token}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch floorplans");
@@ -75,12 +79,14 @@ export default function Tasks() {
       console.error("Error fetching floorplans:", error);
       setFloorplans([]);
     }
+    console.timeEnd("Fetch Floorplans from Page.tsx");
   };
   const fetchStatuses = async (
     project: Project | null,
     access_token: string | null
   ) => {
     try {
+      console.time("Fetch Statuses from Page.tsx");
       const url = `/api/projects/${project?.id}/statuses?access_token=${access_token}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch statuses");
@@ -90,6 +96,7 @@ export default function Tasks() {
       console.error("Error fetching floorplans:", error);
       setStatuses([]);
     }
+    console.timeEnd("Fetch Statuses from Page.tsx");
   };
 
   useEffect(() => {

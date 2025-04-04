@@ -1,18 +1,22 @@
-import { register } from "module";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   nrequest: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
 ) {
+  console.time("Settings Params in Tasks Route.ts");
   const { projectId } = await params; // ✅ Await params
   const { searchParams } = new URL(nrequest.url);
   const access_token = searchParams.get("access_token");
   const floorplanId = searchParams.get("floorplanId");
   const statusId = searchParams.get("statusId");
   const x_last_synced_at = searchParams.get("last_synced_at");
-  let filters = "";
-
+  console.log(
+    `LAST SYNCED PASSED FROM TASKLIST.TSX -----------------${x_last_synced_at}--------------------`
+  );
+  console.log(
+    `PROJECT ID =====================${projectId}=======================`
+  );
   const filterHandler = () => {
     const filters = [];
     if (floorplanId != "") {
@@ -27,14 +31,14 @@ export async function GET(
     const filterQuery = filters.length > 0 ? `?${filters.join("&")}` : "";
     return filterQuery;
   };
-
   if (!projectId) {
     return NextResponse.json({ error: "Missing projectId" }, { status: 400 });
   }
-
+  console.timeEnd("Settings Params in Tasks Route.ts");
   try {
+    console.time("Tasks Route.ts");
     const bearerToken = access_token;
-    filters = filterHandler();
+    const filters = filterHandler();
     const response = await fetch(
       `https://client-api.us.fieldwire.com/api/v3/projects/${projectId}/tasks${filters}`,
       {
@@ -44,7 +48,7 @@ export async function GET(
           "Content-Type": "application/json",
           "Fieldwire-Version": "2023-01-25",
           "Fieldwire-Filter": "active",
-          "Fieldwire-Per-Page": "5",
+          "Fieldwire-Per-Page": "8",
         },
       }
     );
@@ -56,7 +60,10 @@ export async function GET(
     }
     const apiData = await response.json();
     const xLastSync = response.headers.get("X-Last-Synced-At") || "";
+    console.log(`LAST SYNCED ------------${xLastSync}------------------`);
     const xHasMore = response.headers.get("X-Has-More") || "";
+
+    console.timeEnd("Tasks Route.ts");
     return NextResponse.json(
       {
         data: apiData,
