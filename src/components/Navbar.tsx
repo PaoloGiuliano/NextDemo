@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import React, { useState } from "react";
-import MyIcon from "../../public/dd-logo.svg";
 
 const Links = [
   { href: "/tasks", text: "tasks" },
