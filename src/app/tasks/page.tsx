@@ -3,7 +3,6 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useEffect, useState } from "react";
-import TaskInfo from "@/components/TaskInfo";
 
 interface Project {
   id: string;
@@ -118,7 +117,7 @@ export default function Tasks() {
   }, [selectedProject]);
 
   return (
-    <div className="w-[calc(100vw-18px)] border border-red-500">
+    <div className="w-[calc(100vw-18px)]">
       {/* Dropdown Component */}
       <Menu as="div" className="p-5 w-full relative text-left">
         <div>
@@ -263,12 +262,6 @@ export default function Tasks() {
           </MenuItems>
         </Menu>
       </Menu>
-
-      <TaskInfo
-        projectId={selectedProject?.id}
-        floorplanId={selectedFloorplan?.id}
-        statusId={selectedStatus?.id}
-      />
     </div>
   );
 }
