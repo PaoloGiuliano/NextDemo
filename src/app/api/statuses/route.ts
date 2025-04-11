@@ -12,7 +12,6 @@ type Status = {
 export async function GET(
   req: NextRequest
 ): Promise<NextResponse<Status | { error: string }>> {
-  console.time("Getting Statuses from database");
   const secret = req.headers.get("x-internal-secret");
   const project_id = req.nextUrl.searchParams.get("project_id");
   if (secret !== process.env.INTERNAL_SECRET) {
@@ -32,7 +31,6 @@ export async function GET(
     const data = result.rows as Status;
 
     client.release();
-    console.timeEnd("Getting Statuses from database");
     return NextResponse.json(data);
   } catch (err) {
     console.error((err as Error).stack);

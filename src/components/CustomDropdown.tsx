@@ -53,7 +53,7 @@ export default function CustomDropdown<
       <p>{title}</p>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="border px-4 py-2 rounded text-left bg-white"
+        className="border px-4 py-2 rounded text-left bg-white hover:cursor-pointer"
       >
         {selected ? getDisplayName(selected) + " ⤵ " : placeholder + " ⤵ "}
       </button>

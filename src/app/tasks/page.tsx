@@ -32,6 +32,7 @@ interface Task {
 interface Bubble {
   id: string;
   updated_at: string;
+  content: string;
   kind: number;
   task_id: string;
   project_id: string;
@@ -56,7 +57,6 @@ export default function Tasks() {
   const pageCount = [10, 20, 30, 40, 50];
   const [selectedPageCount, setSelectedPageCount] = useState<number | null>(10);
   const fetchProjects = async () => {
-    console.time("Fetch Projects from Page.tsx");
     try {
       const url = `/api/projects`;
       const headers: Record<string, string> = {};
@@ -77,20 +77,7 @@ export default function Tasks() {
       console.error("Error fetching projects:", error);
       setProjects([]);
     }
-
-    console.timeEnd("Fetch Projects from Page.tsx");
   };
-
-  // const handleFloorplanSelect = (floorplan: Floorplan) => {
-  //   setSelectedFloorplan(floorplan); // Update the selected project ID
-  // };
-
-  // const handleProjectSelect = (project: Project) => {
-  //   setSelectedProject(project); // Update the selected floorplan ID
-  // };
-  // const handleStatusSelect = (status: Status) => {
-  //   setSelectedStatus(status); // Update the selected status ID
-  // };
   const fetchFloorplans = async (project: Project | null) => {
     try {
       const url = `/api/floorplans?project_id=${project?.id}`;
@@ -110,7 +97,6 @@ export default function Tasks() {
   };
   const fetchStatuses = async (project: Project | null) => {
     try {
-      console.time("Fetch Statuses from Page.tsx");
       const headers: Record<string, string> = {};
       if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
         headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
@@ -127,7 +113,6 @@ export default function Tasks() {
       console.error("Error fetching statuses", error);
       setStatuses([]);
     }
-    console.timeEnd("Fetch Statuses from Page.tsx");
   };
 
   const fetchTasks = async (project: Project | null) => {
@@ -158,13 +143,13 @@ export default function Tasks() {
       if (page != 0) setPage(page - 1);
     }
   };
-
   useEffect(() => {
     fetchProjects(); // Fetch projects when the component mounts
   }, []);
 
   useEffect(() => {
-    fetchTasks(selectedProject);
+    if (selectedProject) fetchTasks(selectedProject);
+    console.log(tasks);
   }, [page]);
   // Waiting for selectedProject to exist before fetching Floorplans
   useEffect(() => {
@@ -172,7 +157,6 @@ export default function Tasks() {
       fetchFloorplans(selectedProject);
       fetchStatuses(selectedProject);
       fetchTasks(selectedProject);
-      console.log(tasks);
     }
   }, [selectedProject]);
   return (
@@ -218,7 +202,7 @@ export default function Tasks() {
             {selectedProject.name}
             <button
               onClick={() => setSelectedProject(null)}
-              className="ml-2 text-gray-500 hover:text-gray-700 font-bold"
+              className="ml-2 text-gray-500 hover:text-gray-700 font-bold hover:cursor-pointer"
             >
               ×
             </button>
@@ -259,17 +243,34 @@ export default function Tasks() {
           const floorplan = floorplans.find(
             (fp) => fp.id === task.floorplan_id
           );
+          const status = statuses.find((st) => st.id === task.status_id);
 
           return (
             <div key={task.id}>
               <p>{task.name}</p>
               <p>Floorplan: {floorplan?.name || "unknown"}</p>
+              <p>Status: {status?.name || "unknown"}</p>
+              {/* {task.bubbles[3].kind == 11 && (
+                <img src={task.bubbles[3].thumb_url} alt="No image"></img>
+              )}
+              {task.bubbles[3].kind == 1 ||
+                (task.bubbles[3].kind == 2 && <p>{task.bubbles[3].content}</p>)} */}
             </div>
           );
         })}
       </div>
-      <button onClick={() => navigatePage("back")}>Previous Page</button>
-      <button onClick={() => navigatePage("next")}>Next Page</button>
+      <button
+        className="border-2 rounded-xl p-2 m-2 border-red-500 hover:cursor-pointer"
+        onClick={() => navigatePage("back")}
+      >
+        Previous Page
+      </button>
+      <button
+        className="border-2 rounded-xl p-2 m-2 border-green-700 hover:cursor-pointer"
+        onClick={() => navigatePage("next")}
+      >
+        Next Page
+      </button>
     </div>
   );
 }

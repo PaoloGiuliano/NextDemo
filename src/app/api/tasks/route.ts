@@ -34,7 +34,6 @@ export async function GET(
     req.nextUrl.searchParams.get("page_count") || "10",
     10
   );
-  console.log(page);
 
   if (secret !== process.env.INTERNAL_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
