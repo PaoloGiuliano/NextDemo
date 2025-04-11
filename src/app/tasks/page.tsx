@@ -154,7 +154,6 @@ export default function Tasks() {
   const navigatePage = (direction: string) => {
     if (direction == "next") {
       setPage(page + 1);
-      fetchTasks(selectedProject);
     } else {
       page != 0 && setPage(page - 1);
     }
