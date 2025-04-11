@@ -1,7 +1,6 @@
 "use client";
 
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import CustomDropdown from "@/components/CustomDropdown";
 import { useEffect, useState } from "react";
 
 interface Project {
@@ -19,9 +18,33 @@ interface Status {
   name: string;
   color: string;
 }
+interface Task {
+  id: string;
+  name: string;
+  updated_at: string;
+  project_id: string;
+  status_id: string;
+  floorplan_id: string;
+  pos_x: number;
+  pos_y: number;
+  bubbles: Bubble[];
+}
+interface Bubble {
+  id: string;
+  updated_at: string;
+  kind: number;
+  task_id: string;
+  project_id: string;
+  file_size: number;
+  file_url: string;
+  thumb_url: string;
+  original_url: string;
+  flattened_file_url: string;
+}
 
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [floorplans, setFloorplans] = useState<Floorplan[]>([]);
   const [selectedFloorplan, setSelectedFloorplan] = useState<Floorplan | null>(
@@ -29,13 +52,18 @@ export default function Tasks() {
   );
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<Status | null>(null);
-
-  const fetchProjects = async (access_token: string | null) => {
+  const [page, setPage] = useState<number>(0);
+  const pageCount = [10, 20, 30, 40, 50];
+  const [selectedPageCount, setSelectedPageCount] = useState<number | null>(10);
+  const fetchProjects = async () => {
     console.time("Fetch Projects from Page.tsx");
     try {
-      const url = `/api/projects?access_token=${access_token}}`;
-
-      const response = await fetch(url);
+      const url = `/api/projects`;
+      const headers: Record<string, string> = {};
+      if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
+        headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
+      }
+      const response = await fetch(url, { method: "GET", headers });
       if (!response.ok) throw new Error("Failed to fetch projects");
 
       const projects = await response.json();
@@ -63,205 +91,186 @@ export default function Tasks() {
   const handleStatusSelect = (status: Status) => {
     setSelectedStatus(status); // Update the selected status ID
   };
-  const fetchFloorplans = async (
-    project: Project | null,
-    access_token: string | null
-  ) => {
+  const fetchFloorplans = async (project: Project | null) => {
     try {
-      console.time("Fetch Floorplans from Page.tsx");
-      const url = `/api/projects/${project?.id}/floorplans?access_token=${access_token}`;
-      const response = await fetch(url);
+      const url = `/api/floorplans?project_id=${project?.id}`;
+      const headers: Record<string, string> = {};
+      if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
+        headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
+      }
+      const response = await fetch(url, { method: "GET", headers });
       if (!response.ok) throw new Error("Failed to fetch floorplans");
+
       const floorplans = await response.json();
       setFloorplans(floorplans);
     } catch (error) {
       console.error("Error fetching floorplans:", error);
       setFloorplans([]);
     }
-    console.timeEnd("Fetch Floorplans from Page.tsx");
   };
-  const fetchStatuses = async (
-    project: Project | null,
-    access_token: string | null
-  ) => {
+  const fetchStatuses = async (project: Project | null) => {
     try {
       console.time("Fetch Statuses from Page.tsx");
-      const url = `/api/projects/${project?.id}/statuses?access_token=${access_token}`;
-      const response = await fetch(url);
+      const headers: Record<string, string> = {};
+      if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
+        headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
+      }
+      const url = `/api/statuses?project_id=${project ? project.id : ""}`;
+      const response = await fetch(url, {
+        method: "GET",
+        headers,
+      });
       if (!response.ok) throw new Error("Failed to fetch statuses");
-      const statuses = await response.json();
-      setStatuses(statuses);
+      const status = await response.json();
+      setStatuses(status);
     } catch (error) {
-      console.error("Error fetching floorplans:", error);
+      console.error("Error fetching statuses", error);
       setStatuses([]);
     }
     console.timeEnd("Fetch Statuses from Page.tsx");
   };
 
+  const fetchTasks = async (project: Project | null) => {
+    try {
+      const headers: Record<string, string> = {};
+      if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
+        headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
+      }
+      const url = `/api/tasks?project_id=${project ? project.id : ""}&page=${
+        page ? page : 0
+      }&page_count=${selectedPageCount}`;
+      const response = await fetch(url, {
+        method: "GET",
+        headers,
+      });
+      if (!response.ok) throw new Error("Failed to fetch tasks");
+      const tasks = await response.json();
+      setTasks(tasks);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      setTasks([]);
+    }
+  };
+  const navigatePage = (direction: string) => {
+    if (direction == "next") {
+      setPage(page + 1);
+      fetchTasks(selectedProject);
+    } else {
+      page != 0 && setPage(page - 1);
+    }
+  };
+
   useEffect(() => {
-    fetchProjects(localStorage.getItem("Fieldwire_Access_Token")); // Fetch projects when the component mounts
+    fetchProjects(); // Fetch projects when the component mounts
   }, []);
 
+  useEffect(() => {
+    fetchTasks(selectedProject);
+  }, [page]);
   // Waiting for selectedProject to exist before fetching Floorplans
   useEffect(() => {
     if (selectedProject) {
-      fetchFloorplans(
-        selectedProject,
-        localStorage.getItem("Fieldwire_Access_Token")
-      );
-      fetchStatuses(
-        selectedProject,
-        localStorage.getItem("Fieldwire_Access_Token")
-      );
+      fetchFloorplans(selectedProject);
+      fetchStatuses(selectedProject);
+      fetchTasks(selectedProject);
+      console.log(tasks);
     }
   }, [selectedProject]);
-
   return (
-    <div className="w-[calc(100vw-18px)]">
-      {/* Dropdown Component */}
-      <Menu as="div" className="p-5 w-full relative text-left">
-        <div>
-          <MenuButton className="p-5 hover:cursor-pointer order-blue-500 inline-flex justify-center gap-x-1.5 rounded-md bg-white py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50">
-            {selectedProject?.name.toUpperCase()}
-            <ChevronDownIcon
-              aria-hidden="true"
-              className="-mr-1 size-5 text-gray-400"
-            />
-          </MenuButton>
-        </div>
+    <div className="w-full p-5">
+      {/* Dropdowns in a row */}
+      <div className="flex gap-4 items-center">
+        <CustomDropdown
+          items={projects}
+          selected={selectedProject}
+          setSelected={setSelectedProject}
+          placeholder="Select a Project"
+          title="Project"
+        />
 
-        <MenuItems
-          transition
-          className="absolute left-0 z-10 mt-2 w-[50%] border min-w-full origin-top-right rounded-md bg-white ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
-        >
-          <div className="py-1">
-            {projects ? (
-              projects.map((project) => (
-                <MenuItem key={project.id}>
-                  <a
-                    href="#"
-                    onClick={() => handleProjectSelect(project)} // Call the handler on select
-                    className={`block py-2 text-sm text-gray-700 ${
-                      selectedProject?.id === project.id
-                        ? "bg-gray-100 text-gray-900" // Highlight the selected project
-                        : "hover:bg-gray-100 hover:text-gray-900"
-                    }`}
-                  >
-                    {project.name.toUpperCase()}
-                  </a>
-                </MenuItem>
-              ))
-            ) : (
-              <div>No projects available</div>
-            )}
-          </div>
-        </MenuItems>
-      </Menu>
-      {/* Dropdown Component for Floorplans */}
-      <Menu as="div" className="p-5 w-full relative text-left">
-        <div>
-          <MenuButton className="hover:cursor-pointer inline-flex justify-center gap-x-1.5 rounded-md bg-white py-2 px-5 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 shadow-xs hover:bg-gray-50">
-            {selectedFloorplan?.name ? (
-              selectedFloorplan.name // Show selected floorplan name
-            ) : (
-              <span className="text-gray-400">Select a floorplan</span> // Placeholder text
-            )}
-            <ChevronDownIcon
-              aria-hidden="true"
-              className="-mr-1 size-5 text-gray-400"
-            />
-          </MenuButton>
-          {selectedFloorplan && (
+        <CustomDropdown
+          items={floorplans}
+          selected={selectedFloorplan}
+          setSelected={setSelectedFloorplan}
+          placeholder="Select a Floorplan"
+          title="Floorplan"
+        />
+
+        <CustomDropdown
+          items={statuses}
+          selected={selectedStatus}
+          setSelected={setSelectedStatus}
+          placeholder="Select a Status"
+          title="Status"
+        />
+        <CustomDropdown
+          items={pageCount}
+          selected={selectedPageCount}
+          setSelected={setSelectedPageCount}
+          placeholder="tasks per page..."
+          title="Tasks per page"
+        />
+      </div>
+
+      {/* Pills below */}
+      <div className="flex gap-2 flex-wrap mt-4">
+        {selectedProject && (
+          <div className="flex items-center bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
+            {selectedProject.name}
             <button
-              onClick={() => {
-                setSelectedFloorplan(null);
-              }}
-              className="inline-flex justify-center items-center gap-x-1.5 rounded-md bg-white py-2 px-5 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 shadow-xs hover:bg-gray-50 border border-red-500 cursor-pointer m-2"
+              onClick={() => setSelectedProject(null)}
+              className="ml-2 text-gray-500 hover:text-gray-700 font-bold"
             >
-              X
+              ×
             </button>
-          )}
-        </div>
-        <MenuItems
-          transition
-          className="m-5 absolute left-0 z-10 mt-2 w-[50%] max-h-60 overflow-y-auto origin-top-right rounded-md bg-white ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
-        >
-          <div className="py-1">
-            {floorplans ? (
-              floorplans.map((floorplan) => (
-                <MenuItem key={floorplan.id}>
-                  <a
-                    href="#"
-                    onClick={() => handleFloorplanSelect(floorplan)}
-                    className={`block px-5 py-2 text-sm text-gray-700 ${
-                      selectedFloorplan?.id === floorplan.id
-                        ? "bg-gray-100 text-gray-900"
-                        : "hover:bg-gray-100 hover:text-gray-900"
-                    }`}
-                  >
-                    {floorplan.name} - {floorplan.description}
-                  </a>
-                </MenuItem>
-              ))
-            ) : (
-              <div>No floorplans available</div>
-            )}
           </div>
-        </MenuItems>
-        {/* Dropdown Component for Status */}
-        <Menu as="div" className="p-5 w-full relative text-left">
-          <div>
-            <MenuButton className="hover:cursor-pointer inline-flex justify-center gap-x-1.5 rounded-md bg-white py-2 px-5 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 shadow-xs hover:bg-gray-50">
-              {selectedStatus?.name ? (
-                selectedStatus.name.toUpperCase() // Show selected status name
-              ) : (
-                <span className="text-gray-400">Select a status</span> // Placeholder text
-              )}
-              <ChevronDownIcon
-                aria-hidden="true"
-                className="-mr-1 size-5 text-gray-400"
-              />
-            </MenuButton>
-            {selectedStatus && (
-              <button
-                onClick={() => {
-                  setSelectedStatus(null);
-                }}
-                className="inline-flex justify-center items-center gap-x-1.5 rounded-md bg-white py-2 px-5 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 shadow-xs hover:bg-gray-50 border border-red-500 cursor-pointer m-2"
-              >
-                X
-              </button>
-            )}
+        )}
+
+        {selectedFloorplan && (
+          <div className="flex items-center bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
+            {selectedFloorplan.name}
+            <button
+              onClick={() => setSelectedFloorplan(null)}
+              className="ml-2 text-gray-500 hover:text-gray-700 font-bold"
+            >
+              ×
+            </button>
           </div>
-          <MenuItems
-            transition
-            className="m-5 absolute left-0 z-10 mt-2 w-[50%] max-h-60 overflow-y-auto origin-top-right rounded-md bg-white ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+        )}
+
+        {selectedStatus && (
+          <div
+            className={`flex items-centertext-gray-800 px-3 py-1 rounded-full text-sm`}
+            style={{
+              backgroundColor: `${selectedStatus.color}50`,
+            }}
           >
-            <div className="py-1">
-              {statuses ? (
-                statuses.map((status) => (
-                  <MenuItem key={status.id}>
-                    <a
-                      style={{ color: status.color }} // set button color same as corresponding status color
-                      href="#"
-                      onClick={() => handleStatusSelect(status)}
-                      className={`block px-5 py-2 text-sm ${
-                        selectedStatus?.id === status.id
-                          ? "bg-gray-100 text-gray-900"
-                          : "hover:bg-gray-100 hover:text-gray-900"
-                      }`}
-                    >
-                      {status.name.toUpperCase()}
-                    </a>
-                  </MenuItem>
-                ))
-              ) : (
-                <div>No statuses available</div>
-              )}
+            {selectedStatus.name}
+            <button
+              onClick={() => setSelectedStatus(null)}
+              className="ml-2 text-gray-500 hover:text-gray-700 font-bold"
+            >
+              ×
+            </button>
+          </div>
+        )}
+      </div>
+      <div>
+        {tasks.map((task) => {
+          const floorplan = floorplans.find(
+            (fp) => fp.id === task.floorplan_id
+          );
+
+          return (
+            <div key={task.id}>
+              <p>{task.name}</p>
+              <p>Floorplan: {floorplan?.name || "unknown"}</p>
             </div>
-          </MenuItems>
-        </Menu>
-      </Menu>
+          );
+        })}
+      </div>
+      <button onClick={() => navigatePage("back")}>Previous Page</button>
+      <button onClick={() => navigatePage("next")}>Next Page</button>
     </div>
   );
 }
