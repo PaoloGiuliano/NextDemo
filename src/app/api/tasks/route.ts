@@ -1,6 +1,5 @@
 import pool from "@/app/lib/db";
 import { NextResponse, NextRequest } from "next/server";
-import { parse } from "path";
 
 type Task = {
   id: string;

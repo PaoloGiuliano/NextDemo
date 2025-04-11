@@ -81,17 +81,17 @@ export default function Tasks() {
     console.timeEnd("Fetch Projects from Page.tsx");
   };
 
-  const handleFloorplanSelect = (floorplan: Floorplan) => {
-    setSelectedFloorplan(floorplan); // Update the selected project ID
-  };
+  // const handleFloorplanSelect = (floorplan: Floorplan) => {
+  //   setSelectedFloorplan(floorplan); // Update the selected project ID
+  // };
 
-  const handleProjectSelect = (project: Project) => {
-    setSelectedProject(project); // Update the selected floorplan ID
-  };
-  const handleStatusSelect = (status: Status) => {
-    setSelectedStatus(status); // Update the selected status ID
-  };
-  const fetchFloorplans = async (project: Project | null) => {
+  // const handleProjectSelect = (project: Project) => {
+  //   setSelectedProject(project); // Update the selected floorplan ID
+  // };
+  // const handleStatusSelect = (status: Status) => {
+  //   setSelectedStatus(status); // Update the selected status ID
+  // };
+  // const fetchFloorplans = async (project: Project | null) => {
     try {
       const url = `/api/floorplans?project_id=${project?.id}`;
       const headers: Record<string, string> = {};
