@@ -155,7 +155,7 @@ export default function Tasks() {
     if (direction == "next") {
       setPage(page + 1);
     } else {
-      page != 0 && setPage(page - 1);
+      if (page != 0) setPage(page - 1);
     }
   };
 
