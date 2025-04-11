@@ -91,7 +91,7 @@ export default function Tasks() {
   // const handleStatusSelect = (status: Status) => {
   //   setSelectedStatus(status); // Update the selected status ID
   // };
-  // const fetchFloorplans = async (project: Project | null) => {
+  const fetchFloorplans = async (project: Project | null) => {
     try {
       const url = `/api/floorplans?project_id=${project?.id}`;
       const headers: Record<string, string> = {};
