@@ -258,7 +258,7 @@ export default function Tasks() {
                 {task.bubbles.map((bubble) => {
                   return (<>{bubble.kind == 11 && <div className="" key={bubble.id}><a href={bubble.flattened_file_url} target="_blank" rel="nooperner noreferrer"><img className="w-20 h-20" src={bubble.thumb_url} /></a></div>}</>)
                 })}
-                <p>{floorplan.name}</p>
+                <p>{floorplan?.name}</p>
               </div>
             </div>
           );
