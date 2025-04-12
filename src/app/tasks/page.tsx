@@ -21,7 +21,7 @@ interface Status {
 interface Task {
   id: string;
   name: string;
-  updated_at: string;
+  modified_at: string;
   project_id: string;
   status_id: string;
   floorplan_id: string;
@@ -121,9 +121,8 @@ export default function Tasks() {
       if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
         headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
       }
-      const url = `/api/tasks?project_id=${project ? project.id : ""}&page=${
-        page ? page : 0
-      }&page_count=${selectedPageCount}`;
+      const url = `/api/tasks?project_id=${project ? project.id : ""}&page=${page ? page : 0
+        }&page_count=${selectedPageCount}`;
       const response = await fetch(url, {
         method: "GET",
         headers,
@@ -149,8 +148,9 @@ export default function Tasks() {
 
   useEffect(() => {
     if (selectedProject) fetchTasks(selectedProject);
-    console.log(tasks);
-  }, [page]);
+    console.log(tasks)
+
+  }, [page, selectedPageCount]);
   // Waiting for selectedProject to exist before fetching Floorplans
   useEffect(() => {
     if (selectedProject) {
@@ -196,7 +196,7 @@ export default function Tasks() {
       </div>
 
       {/* Pills below */}
-      <div className="flex gap-2 flex-wrap mt-4">
+      <div className="flex gap-2 flex-wrap mt-4 mb-4">
         {selectedProject && (
           <div className="flex items-center bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
             {selectedProject.name}
@@ -246,15 +246,19 @@ export default function Tasks() {
           const status = statuses.find((st) => st.id === task.status_id);
 
           return (
-            <div key={task.id}>
-              <p>{task.name}</p>
-              <p>Floorplan: {floorplan?.name || "unknown"}</p>
-              <p>Status: {status?.name || "unknown"}</p>
-              {/* {task.bubbles[3].kind == 11 && (
-                <img src={task.bubbles[3].thumb_url} alt="No image"></img>
-              )}
-              {task.bubbles[3].kind == 1 ||
-                (task.bubbles[3].kind == 2 && <p>{task.bubbles[3].content}</p>)} */}
+            <div key={task.id} className="border-2 border-gray-300 rounded-xl shadow-sm p-2">
+              <div className="flex flex-row justify-between">
+                <div className="flex flex-col">
+                  <h1 className="underline">{task.name}</h1>
+                  <p className="text-sm font-bold pt-1 pb-1 pr-2" style={{ color: status?.color }}>{status?.name}</p>
+                </div>
+                <p>{task.modified_at}</p>
+              </div>
+              <div className="grid grid-rows-2 grid-cols-6 gap-2">
+                {task.bubbles.map((bubble) => {
+                  return (<>{bubble.kind == 11 && <div className="" key={bubble.id}><a href={bubble.flattened_file_url} target="_blank" rel="nooperner noreferrer"><img className="w-20 h-20" src={bubble.thumb_url} /></a></div>}</>)
+                })}
+              </div>
             </div>
           );
         })}

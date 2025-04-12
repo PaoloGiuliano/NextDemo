@@ -53,13 +53,13 @@ export default function CustomDropdown<
       <p>{title}</p>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="border px-4 py-2 rounded text-left bg-white hover:cursor-pointer"
+        className="border border-gray-300 px-4 py-2 rounded text-left bg-white hover:cursor-pointer"
       >
         {selected ? getDisplayName(selected) + " ⤵ " : placeholder + " ⤵ "}
       </button>
 
       {open && (
-        <ul className="absolute mt-1 min-w-full whitespace-nowrap border rounded bg-white shadow z-10 max-h-60 overflow-auto">
+        <ul className="absolute mt-1 min-w-full whitespace-nowrap border border-gray-300 rounded bg-white shadow z-10 max-h-60 overflow-auto">
           {items.map((item) => (
             <li
               key={getItemKey(item)}

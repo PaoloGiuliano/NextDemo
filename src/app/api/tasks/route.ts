@@ -4,7 +4,7 @@ import { NextResponse, NextRequest } from "next/server";
 type Task = {
   id: string;
   name: string;
-  updated_at: string;
+  modified_at: string;
   project_id: string;
   status_id: string;
   floorplan_id: string;
@@ -44,7 +44,7 @@ export async function GET(
     const client = await pool.connect();
     // Get tasks
     const tasksResults = await client.query(
-      "SELECT id, name, status_id, project_id, floorplan_id, TO_CHAR(updated_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI:SS AM'), pos_x, pos_y FROM tasks WHERE project_id = $1 ORDER BY updated_at DESC LIMIT $2 OFFSET $3",
+      "SELECT id, name, status_id, project_id, floorplan_id, TO_CHAR(updated_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI:SS AM') AS modified_at, pos_x, pos_y FROM tasks WHERE project_id = $1 ORDER BY updated_at DESC LIMIT $2 OFFSET $3",
       [project_id, pageCount, page * pageCount]
     );
     const tasks = tasksResults.rows as Task[];
