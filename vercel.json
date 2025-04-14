@@ -1,5 +1,3 @@
 {
-  "typescript": {
-    "ignoreBuildErrors": true
-  }
+  "ignoreBuildErrors": true
 }
