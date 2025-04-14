@@ -56,6 +56,7 @@ export default function Tasks() {
   const [page, setPage] = useState<number>(0);
   const pageCount = [10, 20, 30, 40, 50];
   const [selectedPageCount, setSelectedPageCount] = useState<number | null>(10);
+  const [loading, setLoading] = useState(true);
   const fetchProjects = async () => {
     try {
       const url = `/api/projects`;
@@ -121,8 +122,11 @@ export default function Tasks() {
       if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
         headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
       }
-      const url = `/api/tasks?project_id=${project ? project.id : ""}&page=${page ? page : 0
-        }&page_count=${selectedPageCount}`;
+      const url = `/api/tasks?project_id=${
+        project ? project.id : ""
+      }&status_id=${selectedStatus ? selectedStatus.id : ""}&floorplan_id=${
+        selectedFloorplan ? selectedFloorplan.id : ""
+      }&page=${page ? page : 0}&page_count=${selectedPageCount}`;
       const response = await fetch(url, {
         method: "GET",
         headers,
@@ -133,6 +137,8 @@ export default function Tasks() {
     } catch (error) {
       console.error("Error fetching tasks:", error);
       setTasks([]);
+    } finally {
+      setLoading(false);
     }
   };
   const navigatePage = (direction: string) => {
@@ -148,9 +154,7 @@ export default function Tasks() {
 
   useEffect(() => {
     if (selectedProject) fetchTasks(selectedProject);
-    console.log(tasks)
-
-  }, [page, selectedPageCount]);
+  }, [page, selectedPageCount, selectedStatus, selectedFloorplan]);
   // Waiting for selectedProject to exist before fetching Floorplans
   useEffect(() => {
     if (selectedProject) {
@@ -160,7 +164,7 @@ export default function Tasks() {
     }
   }, [selectedProject]);
   return (
-    <div className="w-full p-5">
+    <div className="w-[calc(100vw-17px)] p-5">
       {/* Dropdowns in a row */}
       <div className="flex gap-4 items-center">
         <CustomDropdown
@@ -170,7 +174,6 @@ export default function Tasks() {
           placeholder="Select a Project"
           title="Project"
         />
-
         <CustomDropdown
           items={floorplans}
           selected={selectedFloorplan}
@@ -178,7 +181,6 @@ export default function Tasks() {
           placeholder="Select a Floorplan"
           title="Floorplan"
         />
-
         <CustomDropdown
           items={statuses}
           selected={selectedStatus}
@@ -190,12 +192,12 @@ export default function Tasks() {
           items={pageCount}
           selected={selectedPageCount}
           setSelected={setSelectedPageCount}
-          placeholder="tasks per page..."
+          placeholder="Tasks per page..."
           title="Tasks per page"
         />
       </div>
 
-      {/* Pills below */}
+      {/* Pills */}
       <div className="flex gap-2 flex-wrap mt-4 mb-4">
         {selectedProject && (
           <div className="flex items-center bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
@@ -214,7 +216,7 @@ export default function Tasks() {
             {selectedFloorplan.name}
             <button
               onClick={() => setSelectedFloorplan(null)}
-              className="ml-2 text-gray-500 hover:text-gray-700 font-bold"
+              className="ml-2 text-gray-500 hover:text-gray-700 font-bold hover:cursor-pointer"
             >
               ×
             </button>
@@ -223,59 +225,98 @@ export default function Tasks() {
 
         {selectedStatus && (
           <div
-            className={`flex items-centertext-gray-800 px-3 py-1 rounded-full text-sm`}
-            style={{
-              backgroundColor: `${selectedStatus.color}50`,
-            }}
+            className="flex items-center text-gray-800 px-3 py-1 rounded-full text-sm"
+            style={{ backgroundColor: `${selectedStatus.color}50` }}
           >
             {selectedStatus.name}
             <button
               onClick={() => setSelectedStatus(null)}
-              className="ml-2 text-gray-500 hover:text-gray-700 font-bold"
+              className="ml-2 text-gray-500 hover:text-gray-700 font-bold hover:cursor-pointer"
             >
               ×
             </button>
           </div>
         )}
       </div>
-      <div>
-        {tasks.map((task) => {
-          const floorplan = floorplans.find(
-            (fp) => fp.id === task.floorplan_id
-          );
-          const status = statuses.find((st) => st.id === task.status_id);
 
-          return (
-            <div key={task.id} className="border-2 border-gray-300 rounded-xl shadow-sm p-2">
-              <div className="flex flex-row justify-between">
-                <div className="flex flex-col">
-                  <h1 className="underline">{task.name}</h1>
-                  <p className="text-sm font-bold pt-1 pb-1 pr-2" style={{ color: status?.color }}>{status?.name}</p>
+      {/* Tasks Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full">
+        {loading
+          ? Array.from({ length: 6 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="h-40 w-full bg-gray-200 animate-pulse rounded-xl"
+              />
+            ))
+          : tasks.map((task) => {
+              const floorplan = floorplans.find(
+                (fp) => fp.id === task.floorplan_id
+              );
+              const status = statuses.find((st) => st.id === task.status_id);
+
+              return (
+                <div
+                  key={task.id}
+                  className="border-2 border-gray-300 rounded-xl shadow-sm p-4 flex flex-col justify-between w-full"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h1 className="underline">{task.name}</h1>
+                      <p
+                        className="text-sm font-bold pt-1 pb-1 pr-2"
+                        style={{ color: status?.color }}
+                      >
+                        {status?.name}
+                      </p>
+                    </div>
+                    <p className="text-xs text-gray-600">{task.modified_at}</p>
+                  </div>
+
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {task.bubbles
+                      .filter((b) => b.kind === 11)
+                      .map((bubble) => (
+                        <a
+                          key={bubble.id}
+                          href={bubble.original_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <img
+                            src={bubble.thumb_url}
+                            alt="Bubble"
+                            className="w-full h-20 object-cover rounded"
+                          />
+                        </a>
+                      ))}
+                  </div>
+
+                  {floorplan?.name && (
+                    <p className="text-sm mt-2 text-gray-700">
+                      {floorplan.name}
+                    </p>
+                  )}
                 </div>
-                <p>{task.modified_at}</p>
-              </div>
-              <div className="grid grid-rows-2 grid-cols-6 gap-2">
-                {task.bubbles.map((bubble) => {
-                  return (<>{bubble.kind == 11 && <div className="" key={bubble.id}><a href={bubble.flattened_file_url} target="_blank" rel="nooperner noreferrer"><img className="w-20 h-20" src={bubble.thumb_url} /></a></div>}</>)
-                })}
-                <p>{floorplan?.name}</p>
-              </div>
-            </div>
-          );
-        })}
+              );
+            })}
       </div>
-      <button
-        className="border-2 rounded-xl p-2 m-2 border-red-500 hover:cursor-pointer"
-        onClick={() => navigatePage("back")}
-      >
-        Previous Page
-      </button>
-      <button
-        className="border-2 rounded-xl p-2 m-2 border-green-700 hover:cursor-pointer"
-        onClick={() => navigatePage("next")}
-      >
-        Next Page
-      </button>
+
+      {/* Pagination */}
+      <div className="flex justify-center items-center mt-6 gap-4 w-full">
+        <button
+          className="border-2 rounded-xl px-4 py-2 border-red-500"
+          onClick={() => navigatePage("back")}
+        >
+          Previous
+        </button>
+        <span className="text-sm">Page {page}</span>
+        <button
+          className="border-2 rounded-xl px-4 py-2 border-green-700"
+          onClick={() => navigatePage("next")}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

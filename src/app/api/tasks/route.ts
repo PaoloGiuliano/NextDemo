@@ -1,4 +1,5 @@
 import pool from "@/app/lib/db";
+import { Flow_Rounded } from "next/font/google";
 import { NextResponse, NextRequest } from "next/server";
 
 type Task = {
@@ -29,6 +30,8 @@ export async function GET(
 ): Promise<NextResponse<Task[] | { error: string }>> {
   const secret = req.headers.get("x-internal-secret");
   const project_id = req.nextUrl.searchParams.get("project_id");
+  const status_id = req.nextUrl.searchParams.get("status_id");
+  const floorplan_id = req.nextUrl.searchParams.get("floorplan_id");
   const page = parseInt(req.nextUrl.searchParams.get("page") || "0", 10);
   const pageCount = parseInt(
     req.nextUrl.searchParams.get("page_count") || "10",
@@ -40,13 +43,31 @@ export async function GET(
   }
   if (!project_id)
     return NextResponse.json({ error: "Missing project_id" }, { status: 400 });
+
+  const client = await pool.connect();
   try {
-    const client = await pool.connect();
-    // Get tasks
-    const tasksResults = await client.query(
-      "SELECT id, name, status_id, project_id, floorplan_id, TO_CHAR(updated_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI:SS AM') AS modified_at, pos_x, pos_y FROM tasks WHERE project_id = $1 ORDER BY updated_at DESC LIMIT $2 OFFSET $3",
-      [project_id, pageCount, page * pageCount]
-    );
+    let query = `SELECT id, name, status_id, project_id, floorplan_id, TO_CHAR(updated_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI:SS AM') AS modified_at, pos_x, pos_y 
+       FROM tasks 
+       WHERE project_id = $1`;
+
+    const params: any[] = [project_id];
+    let paramIndex = 2;
+
+    if (status_id) {
+      query += ` AND status_id = $${paramIndex++}`;
+      params.push(status_id);
+    }
+    if (floorplan_id) {
+      query += ` AND floorplan_id = $${paramIndex++}`;
+      params.push(floorplan_id);
+    }
+
+    query += ` ORDER BY updated_at DESC LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
+    params.push(pageCount, page * pageCount);
+
+    console.log(query, params);
+
+    const tasksResults = await client.query(query, params);
     const tasks = tasksResults.rows as Task[];
 
     const bubblesResults = await client.query(
@@ -61,7 +82,7 @@ export async function GET(
       );
       return { ...task, bubbles: relatedBubbles };
     });
-    client.release();
+
     return NextResponse.json(enrichedTasks);
   } catch (err) {
     console.error((err as Error).stack);
@@ -69,5 +90,7 @@ export async function GET(
       { error: "Internal Server Error" },
       { status: 500 }
     );
+  } finally {
+    client.release(); // ✅ this always runs
   }
 }
