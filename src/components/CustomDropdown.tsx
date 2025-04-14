@@ -5,6 +5,7 @@ type DropdownObject = {
   id: string;
   name: string;
   color?: string;
+  description?: string; // Added optional description field
 };
 
 type Props<T extends DropdownObject | string | number> = {
@@ -49,6 +50,13 @@ export default function CustomDropdown<
     return typeof item === "object" ? item.color : undefined;
   };
 
+  const getItemDescription = (item: T): string | undefined => {
+    if (typeof item === "object" && "description" in item) {
+      return item.description;
+    }
+    return undefined; // No description for strings/numbers by default
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -88,7 +96,14 @@ export default function CustomDropdown<
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
               style={{ color: getItemColor(item) }}
             >
-              {getDisplayName(item)}
+              <div>
+                <div>{getDisplayName(item)}</div>
+                {getItemDescription(item) && (
+                  <div className="text-xs text-gray-500">
+                    {getItemDescription(item)}
+                  </div>
+                )}
+              </div>
             </li>
           ))}
         </ul>

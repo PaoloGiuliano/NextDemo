@@ -159,14 +159,16 @@ export default function Tasks() {
   useEffect(() => {
     if (selectedProject) {
       fetchFloorplans(selectedProject);
+      setSelectedFloorplan(null);
       fetchStatuses(selectedProject);
+      setSelectedStatus(null);
       fetchTasks(selectedProject);
     }
   }, [selectedProject]);
   return (
     <div className="w-[calc(100vw-17px)] p-5">
       {/* Dropdowns in a row */}
-      <div className="flex flex-col sm:flex-col lg:flex-row xl:flex-row gap-4 lg:items-center xl:item-center">
+      <div className="lg:flex xl:flex flex-col sm:grid sm:grid-cols-2 lg:flex-row xl:flex-row gap-4 lg:items-center xl:item-center">
         <CustomDropdown
           items={projects}
           selected={selectedProject}
@@ -199,7 +201,7 @@ export default function Tasks() {
 
       {/* Pills */}
       <div className="flex gap-2 flex-wrap mt-4 mb-4">
-        {selectedProject && (
+        {/* {selectedProject && (
           <div className="flex items-center bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
             {selectedProject.name}
             <button
@@ -210,7 +212,7 @@ export default function Tasks() {
             </button>
           </div>
         )}
-
+ */}
         {selectedFloorplan && (
           <div className="flex items-center bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
             {selectedFloorplan.name}
@@ -242,7 +244,7 @@ export default function Tasks() {
       {/* Tasks Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full">
         {loading
-          ? Array.from({ length: 6 }).map((_, idx) => (
+          ? Array.from({ length: selectedPageCount || 6 }).map((_, idx) => (
               <div
                 key={idx}
                 className="h-40 w-full bg-gray-200 animate-pulse rounded-xl"
@@ -309,7 +311,7 @@ export default function Tasks() {
         >
           Previous
         </button>
-        <span className="text-sm">Page {page}</span>
+        <span className="text-sm">Page {page + 1}</span>
         <button
           className="border-2 rounded-xl px-4 py-2 border-green-700"
           onClick={() => navigatePage("next")}
