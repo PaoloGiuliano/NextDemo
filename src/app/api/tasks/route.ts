@@ -1,5 +1,4 @@
 import pool from "@/app/lib/db";
-import { Flow_Rounded } from "next/font/google";
 import { NextResponse, NextRequest } from "next/server";
 
 type Task = {
