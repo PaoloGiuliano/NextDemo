@@ -49,7 +49,7 @@ export default function Tasks() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [floorplans, setFloorplans] = useState<Floorplan[]>([]);
   const [selectedFloorplan, setSelectedFloorplan] = useState<Floorplan | null>(
-    null
+    null,
   );
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<Status | null>(null);
@@ -168,7 +168,7 @@ export default function Tasks() {
   return (
     <div className="w-[calc(100vw-17px)] p-5">
       {/* Dropdowns in a row */}
-      <div className="lg:flex xl:flex flex-col sm:grid sm:grid-cols-2 lg:flex-row xl:flex-row gap-4 lg:items-center xl:item-center">
+      <div className="xl:item-center xs:grid xs:grid-cols-2 flex-col gap-4 lg:flex lg:flex-row lg:items-center xl:flex xl:flex-row">
         <CustomDropdown
           items={projects}
           selected={selectedProject}
@@ -200,7 +200,7 @@ export default function Tasks() {
       </div>
 
       {/* Pills */}
-      <div className="flex gap-2 flex-wrap mt-4 mb-4">
+      <div className="mt-4 mb-4 flex flex-wrap gap-2">
         {/* {selectedProject && (
           <div className="flex items-center bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
             {selectedProject.name}
@@ -214,11 +214,11 @@ export default function Tasks() {
         )}
  */}
         {selectedFloorplan && (
-          <div className="flex items-center bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
+          <div className="flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-800">
             {selectedFloorplan.name}
             <button
               onClick={() => setSelectedFloorplan(null)}
-              className="ml-2 text-gray-500 hover:text-gray-700 font-bold hover:cursor-pointer"
+              className="ml-2 font-bold text-gray-500 hover:cursor-pointer hover:text-gray-700"
             >
               ×
             </button>
@@ -227,93 +227,99 @@ export default function Tasks() {
 
         {selectedStatus && (
           <div
-            className="flex items-center text-gray-800 px-3 py-1 rounded-full text-sm"
+            className="flex items-center rounded-full px-3 py-1 text-sm text-gray-800"
             style={{ backgroundColor: `${selectedStatus.color}50` }}
           >
             {selectedStatus.name}
             <button
               onClick={() => setSelectedStatus(null)}
-              className="ml-2 text-gray-500 hover:text-gray-700 font-bold hover:cursor-pointer"
+              className="ml-2 font-bold text-gray-500 hover:cursor-pointer hover:text-gray-700"
             >
               ×
             </button>
           </div>
         )}
       </div>
-
       {/* Tasks Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full">
-        {loading
-          ? Array.from({ length: selectedPageCount || 6 }).map((_, idx) => (
+      <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
+        {loading ? (
+          Array.from({ length: selectedPageCount || 6 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="h-40 w-full animate-pulse rounded-xl bg-gray-200"
+            />
+          ))
+        ) : tasks.length === 0 ? (
+          <div className="col-span-full flex items-center justify-center py-10 text-gray-500">
+            No Tasks
+          </div>
+        ) : (
+          tasks.map((task) => {
+            const floorplan = floorplans.find(
+              (fp) => fp.id === task.floorplan_id,
+            );
+            const status = statuses.find((st) => st.id === task.status_id);
+
+            return (
               <div
-                key={idx}
-                className="h-40 w-full bg-gray-200 animate-pulse rounded-xl"
-              />
-            ))
-          : tasks.map((task) => {
-              const floorplan = floorplans.find(
-                (fp) => fp.id === task.floorplan_id
-              );
-              const status = statuses.find((st) => st.id === task.status_id);
-
-              return (
-                <div
-                  key={task.id}
-                  className="border-2 border-gray-300 rounded-xl shadow-sm p-4 flex flex-col justify-between w-full"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h1 className="underline">{task.name}</h1>
-                      <p
-                        className="text-sm font-bold pt-1 pb-1 pr-2"
-                        style={{ color: status?.color }}
-                      >
-                        {status?.name}
-                      </p>
-                    </div>
-                    <p className="text-xs text-gray-600">{task.modified_at}</p>
-                  </div>
-
-                  <div className="mt-2 grid grid-cols-3 gap-2">
-                    {task.bubbles
-                      .filter((b) => b.kind === 11)
-                      .map((bubble) => (
-                        <a
-                          key={bubble.id}
-                          href={bubble.original_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <img
-                            src={bubble.thumb_url}
-                            alt="Bubble"
-                            className="w-full h-20 object-cover rounded"
-                          />
-                        </a>
-                      ))}
-                  </div>
-
-                  {floorplan?.name && (
-                    <p className="text-sm mt-2 text-gray-700">
-                      {floorplan.name}
+                key={task.id}
+                className="flex w-full flex-col justify-between rounded-xl border-2 border-gray-300 p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h1 className="underline">{task.name}</h1>
+                    <p
+                      className="pt-1 pr-2 pb-1 text-sm font-bold"
+                      style={{ color: status?.color }}
+                    >
+                      {status?.name}
                     </p>
-                  )}
+                  </div>
+                  <p className="text-xs text-gray-600">{task.modified_at}</p>
                 </div>
-              );
-            })}
+
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {task.bubbles
+                    .filter((b) => b.kind === 11)
+                    .map((bubble) => (
+                      <a
+                        key={bubble.id}
+                        href={bubble.original_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <img
+                          src={bubble.thumb_url}
+                          alt="Bubble"
+                          className="h-20 w-full rounded object-cover"
+                        />
+                      </a>
+                    ))}
+                </div>
+
+                {floorplan?.name && (
+                  <p className="mt-2 text-sm text-gray-700">{floorplan.name}</p>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center items-center mt-6 gap-4 w-full">
+      <div
+        hidden={tasks.length === 0}
+        className="mt-6 flex w-full items-center justify-center gap-4"
+      >
         <button
-          className="border-2 rounded-xl px-4 py-2 border-red-500"
+          className="rounded-xl border-2 border-red-500 px-4 py-2 hover:cursor-pointer"
           onClick={() => navigatePage("back")}
         >
           Previous
         </button>
         <span className="text-sm">Page {page + 1}</span>
         <button
-          className="border-2 rounded-xl px-4 py-2 border-green-700"
+          className="rounded-xl border-2 border-green-700 px-4 py-2 hover:cursor-pointer"
           onClick={() => navigatePage("next")}
         >
           Next
