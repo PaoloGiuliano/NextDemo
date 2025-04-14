@@ -166,7 +166,7 @@ export default function Tasks() {
   return (
     <div className="w-[calc(100vw-17px)] p-5">
       {/* Dropdowns in a row */}
-      <div className="flex gap-4 items-center">
+      <div className="flex flex-col sm:flex-col lg:flex-row xl:flex-row gap-4 lg:items-center xl:item-center">
         <CustomDropdown
           items={projects}
           selected={selectedProject}

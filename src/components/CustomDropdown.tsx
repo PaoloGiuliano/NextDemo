@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 type DropdownObject = {
   id: string;
@@ -27,6 +27,7 @@ export default function CustomDropdown<
   className = "",
 }: Props<T>) {
   const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const getDisplayName = (item: T): string => {
     if (typeof item === "string" || typeof item === "number") {
@@ -48,8 +49,25 @@ export default function CustomDropdown<
     return typeof item === "object" ? item.color : undefined;
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className={`relative inline-block ${className}`}>
+    <div className={`relative inline-block ${className}`} ref={dropdownRef}>
       <p>{title}</p>
       <button
         onClick={() => setOpen((prev) => !prev)}
