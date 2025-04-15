@@ -12,6 +12,24 @@ interface Floorplan {
   id: string;
   name: string;
   description: string;
+  updated_at: string;
+  project_id: string;
+  sheets: Sheet[];
+}
+interface Sheet {
+  id: string;
+  name: string;
+  updated_at: string;
+  project_id: string;
+  floorplan_id: string;
+  file_name: string;
+  file_url: string;
+  thumb_url: string;
+  original_url: string;
+  original_height: number;
+  original_width: number;
+  file_height: number;
+  file_width: number;
 }
 interface Status {
   id: string;
@@ -263,11 +281,11 @@ export default function Tasks() {
             return (
               <div
                 key={task.id}
-                className="flex w-full flex-col justify-between rounded-xl border-2 border-gray-300 p-4 shadow-sm"
+                className="flex w-full flex-col justify-between rounded-xl border-2 border-[#15448c80] p-4 shadow-sm"
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h1 className="underline">{task.name}</h1>
+                    <h1 className="text-2xl">{task.name}</h1>
                     <p
                       className="pt-1 pr-2 pb-1 text-sm font-bold"
                       style={{ color: status?.color }}
@@ -278,25 +296,38 @@ export default function Tasks() {
                   <p className="text-xs text-gray-600">{task.modified_at}</p>
                 </div>
 
-                <div className="mt-2 grid grid-cols-3 gap-2">
+                <div className="mt-2 grid grid-cols-6 gap-2">
                   {task.bubbles
-                    .filter((b) => b.kind === 11)
+                    .filter((b) => b.kind === 10 || b.kind === 11) // only images
+                    .slice(-6) // get the last 6
                     .map((bubble) => (
                       <a
                         key={bubble.id}
-                        href={bubble.original_url}
+                        href={
+                          bubble.flattened_file_url
+                            ? bubble.flattened_file_url
+                            : bubble.original_url
+                        }
                         target="_blank"
                         rel="noopener noreferrer"
                       >
                         <img
                           src={bubble.thumb_url}
                           alt="Bubble"
-                          className="h-20 w-full rounded object-cover"
+                          className="w-full rounded object-cover sm:w-10 md:w-18 lg:w-30 xl:w-30 2xl:w-50"
                         />
                       </a>
                     ))}
+                  <a
+                    className="col-start-4 col-end-7 row-start-1 row-end-3"
+                    key={floorplan?.id}
+                    href={floorplan?.sheets[0].original_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <img src={floorplan?.sheets[0].thumb_url}></img>
+                  </a>
                 </div>
-
                 {floorplan?.name && (
                   <p className="mt-2 text-sm text-gray-700">{floorplan.name}</p>
                 )}

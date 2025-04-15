@@ -4,9 +4,8 @@ import { NextResponse, NextRequest } from "next/server";
 type Floorplan = {
   id: string;
   name: string;
-  updated_at: string;
+
   project_id: string;
-  color: string;
   sheets: Sheet[];
 };
 
@@ -27,7 +26,7 @@ type Sheet = {
 };
 
 export async function GET(
-  req: NextRequest
+  req: NextRequest,
 ): Promise<NextResponse<Floorplan[] | { error: string }>> {
   const secret = req.headers.get("x-internal-secret");
   const project_id = req.nextUrl.searchParams.get("project_id");
@@ -45,21 +44,21 @@ export async function GET(
     // Get floorplans
     const floorplansResult = await client.query(
       "SELECT * FROM floorplans WHERE project_id = $1",
-      [project_id]
+      [project_id],
     );
     const floorplans = floorplansResult.rows as Floorplan[];
 
     // Get all sheets for the project
     const sheetsResult = await client.query(
       "SELECT * FROM sheets WHERE project_id = $1",
-      [project_id]
+      [project_id],
     );
     const sheets = sheetsResult.rows as Sheet[];
 
     // Map sheets to their corresponding floorplan
     const enrichedFloorplans = floorplans.map((floorplan) => {
       const relatedSheets = sheets.filter(
-        (sheet) => sheet.floorplan_id === floorplan.id
+        (sheet) => sheet.floorplan_id === floorplan.id,
       );
       return { ...floorplan, sheets: relatedSheets };
     });
@@ -70,7 +69,7 @@ export async function GET(
     console.error((err as Error).stack);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
