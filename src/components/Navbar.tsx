@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const Links = [
   { href: "/tasks", text: "tasks" },
@@ -12,10 +12,16 @@ const Links = [
 const Navbar = () => {
   const pathname = usePathname(); // Get the current pathname
   const [isMenuOpen, setIsMenuOpen] = useState(false); // State to toggle menu visibility
+  const [isMobile, setIsMobile] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen); // Toggle the state
   };
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+  }, []);
+  const sizeClass = isMobile ? "h-20 w-20" : "h-32 w-32";
 
   return (
     <nav className="bg-[#15448c] p-4 text-white">
@@ -24,7 +30,7 @@ const Navbar = () => {
           <img
             src="/dd-logo.svg"
             alt="dd-logo"
-            className="sature-100 h-20 w-20 p-2 brightness-0 hue-rotate-180 invert sepia filter sm:h-22 sm:w-22 md:h-24 md:w-24 lg:h-26 lg:w-26 xl:h-28 xl:w-28 2xl:h-32 2xl:w-32"
+            className={`sature-100 ${sizeClass} h-20 w-20 p-2 brightness-0 hue-rotate-180 invert sepia filter`}
           />
         </Link>
         <ul className="hidden space-x-6 md:flex">
