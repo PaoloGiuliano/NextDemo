@@ -18,21 +18,21 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-[#15448c] text-white p-4">
-      <div className="flex justify-between items-center">
+    <nav className="bg-[#15448c] p-4 text-white">
+      <div className="flex items-center justify-between">
         <Link href={"/"} className="text-2xl font-semibold">
           <img
             src="/dd-logo.svg"
             alt="dd-logo"
-            className="p-2 w-32 h-32 filter invert brightness-0 sepia sature-100 hue-rotate-180"
+            className="sature-100 h-20 w-20 p-2 brightness-0 hue-rotate-180 invert sepia filter sm:h-22 sm:w-22 md:h-24 md:w-24 lg:h-26 lg:w-26 xl:h-28 xl:w-28 2xl:h-32 2xl:w-32"
           />
         </Link>
-        <ul className="hidden md:flex space-x-6">
+        <ul className="hidden space-x-6 md:flex">
           {Links.map((link) => (
             <li key={link.href}>
               <Link
                 href={link.href}
-                className={`capitalize hover:text-gray-400 text-2xl px-4 py-2 rounded ${
+                className={`rounded px-4 py-2 text-2xl capitalize hover:text-gray-400 ${
                   pathname === link.href
                     ? "bg-[#2b5594] text-gray-100" // Active link styles
                     : "text-gray-300"
@@ -51,7 +51,7 @@ const Navbar = () => {
             className="text-white"
           >
             <svg
-              className="w-15 h-15 hover:cursor-pointer"
+              className="h-15 w-15 hover:cursor-pointer"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -79,9 +79,9 @@ const Navbar = () => {
             <li key={link.href}>
               <Link
                 href={link.href}
-                className={`capitalize block text-gray-300 hover:text-white py-2 px-4 rounded ${
+                className={`block rounded px-4 py-2 text-gray-300 capitalize hover:text-white ${
                   pathname === link.href
-                    ? "underline font-bold text-gray-100" // Active link styles
+                    ? "font-bold text-gray-100 underline" // Active link styles
                     : "text-gray-300"
                 }`}
                 onClick={() => setIsMenuOpen(false)} // Close menu on link click
