@@ -294,9 +294,9 @@ export default function Tasks() {
             return (
               <div
                 key={task.id}
-                className="flex w-full flex-col justify-between rounded-xl border-2 border-[#15448c80] p-4 shadow-sm"
+                className="flex w-full flex-col justify-between rounded-t-sm border-[#15448c80] bg-gray-100 p-4 shadow-xl ring-2 shadow-gray-500 ring-gray-300"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between border-b-2 border-gray-200">
                   <div>
                     <h1 className="text-2xl">{task.name}</h1>
                     <p
@@ -335,7 +335,7 @@ export default function Tasks() {
                         />
                       </a>
                     ))}
-                  <div className="relative col-start-4 col-end-7 row-start-1 row-end-3 h-full w-full overflow-hidden rounded-2xl border-1 border-gray-400">
+                  <div className="relative col-start-4 col-end-7 row-start-1 row-end-3 h-full w-full overflow-hidden rounded-sm ring-1 ring-black">
                     <a
                       className=""
                       href={floorplan?.sheets[0].file_url}
