@@ -2,7 +2,7 @@
 
 import CustomDropdown from "@/components/CustomDropdown";
 import { useEffect, useState } from "react";
-import { MapPinIcon } from "@heroicons/react/24/outline";
+import { MapPinIcon } from "@heroicons/react/16/solid";
 import { BackwardIcon } from "@heroicons/react/24/outline";
 import { ForwardIcon } from "@heroicons/react/24/outline";
 interface Project {
@@ -170,6 +170,7 @@ export default function Tasks() {
     } else {
       if (page != 0) setPage(page - 1);
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
   useEffect(() => {
     fetchProjects(); // Fetch projects when the component mounts
@@ -360,8 +361,9 @@ export default function Tasks() {
                       <MapPinIcon
                         className="h-full w-full translate-y-[-10px]"
                         style={{
-                          color: `black`,
-                          fill: `${status ? status.color : "white"}`,
+                          color: `${status ? status.color : "#000000"}`,
+                          fill: `${status ? status.color : "#FFFFFF"}CC`,
+                          stroke: "#000000",
                         }}
                       />
                     </div>
