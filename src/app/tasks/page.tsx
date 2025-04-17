@@ -2,7 +2,9 @@
 
 import CustomDropdown from "@/components/CustomDropdown";
 import { useEffect, useState } from "react";
-
+import { MapPinIcon } from "@heroicons/react/24/outline";
+import { BackwardIcon } from "@heroicons/react/24/outline";
+import { ForwardIcon } from "@heroicons/react/24/outline";
 interface Project {
   id: string;
   name: string;
@@ -278,6 +280,15 @@ export default function Tasks() {
             );
             const status = statuses.find((st) => st.id === task.status_id);
 
+            const imageHeight = floorplan ? floorplan.sheets[0].file_height : 0;
+            const imageWidth = floorplan ? floorplan.sheets[0].file_width : 0;
+            const percentX = floorplan ? (task.pos_x / imageWidth) * 100 : 0;
+            const percentY = floorplan ? (task.pos_y / imageHeight) * 100 : 0;
+            console.log(
+              `${task.name} - pos_x: ${task.pos_x} | pos_y: ${task.pos_y} | percentX: ${percentX} | percentY: ${percentY} | imageWidth: ${imageWidth}  | imageHeight: ${imageHeight}`,
+            );
+            console.log(status?.color);
+
             return (
               <div
                 key={task.id}
@@ -298,7 +309,9 @@ export default function Tasks() {
 
                 <div className="mt-2 grid grid-cols-6 gap-2">
                   {task.bubbles
-                    .filter((b) => b.kind === 10 || b.kind === 11) // only images
+                    .filter(
+                      (b) => b.kind === 10 || b.kind === 11 || b.kind === 13,
+                    ) // only images
                     .slice(-6) // get the last 6
                     .map((bubble) => (
                       <a
@@ -306,7 +319,9 @@ export default function Tasks() {
                         href={
                           bubble.flattened_file_url
                             ? bubble.flattened_file_url
-                            : bubble.original_url
+                            : bubble.kind === 13
+                              ? `https://renderstuff.com/tools/360-panorama-web-viewer/panorama_360_vr?image=${bubble.original_url}`
+                              : bubble.original_url
                         }
                         target="_blank"
                         rel="noopener noreferrer"
@@ -314,22 +329,46 @@ export default function Tasks() {
                         <img
                           src={bubble.thumb_url}
                           alt="Bubble"
-                          className="w-full rounded object-cover sm:w-10 md:w-18 lg:w-30 xl:w-30 2xl:w-50"
+                          className="rounded object-cover sm:w-10 md:w-18 lg:w-30 xl:w-30 2xl:w-50"
                         />
                       </a>
                     ))}
-                  <a
-                    className="col-start-4 col-end-7 row-start-1 row-end-3"
-                    key={floorplan?.id}
-                    href={floorplan?.sheets[0].original_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <img src={floorplan?.sheets[0].thumb_url}></img>
-                  </a>
+                  <div className="relative col-start-4 col-end-7 row-start-1 row-end-3 h-full w-full overflow-hidden rounded-2xl border-1 border-gray-400">
+                    <a
+                      className=""
+                      href={floorplan?.sheets[0].file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <img
+                        className="scale-400"
+                        src={floorplan?.sheets[0].file_url}
+                        style={{
+                          transformOrigin: `${percentX}% ${percentY}%`,
+                        }}
+                      ></img>
+                    </a>
+                    <div
+                      className="absolute z-10 h-10 w-10 translate-x-[-50%] translate-y-[-50%] rounded-2xl"
+                      style={{
+                        top: `${percentY}%`,
+                        left: `${percentX}%`,
+                      }}
+                    >
+                      <MapPinIcon
+                        className="h-full w-full translate-y-[-10px]"
+                        style={{
+                          color: `black`,
+                          fill: `${status ? status.color : "white"}`,
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
                 {floorplan?.name && (
-                  <p className="mt-2 text-sm text-gray-700">{floorplan.name}</p>
+                  <p className="mt-2 text-sm text-gray-700">
+                    {floorplan.name} - {floorplan.description}
+                  </p>
                 )}
               </div>
             );
@@ -342,18 +381,12 @@ export default function Tasks() {
         hidden={tasks.length === 0}
         className="mt-6 flex w-full items-center justify-center gap-4"
       >
-        <button
-          className="rounded-xl border-2 border-red-500 px-4 py-2 hover:cursor-pointer"
-          onClick={() => navigatePage("back")}
-        >
-          Previous
+        <button className="px-4 py-2" onClick={() => navigatePage("back")}>
+          <BackwardIcon className="h-10 w-10 fill-red-500 text-red-400 hover:cursor-pointer" />
         </button>
         <span className="text-sm">Page {page + 1}</span>
-        <button
-          className="rounded-xl border-2 border-green-700 px-4 py-2 hover:cursor-pointer"
-          onClick={() => navigatePage("next")}
-        >
-          Next
+        <button className="px-4 py-2" onClick={() => navigatePage("next")}>
+          <ForwardIcon className="h-10 w-10 fill-green-500 text-green-400 hover:cursor-pointer" />
         </button>
       </div>
     </div>

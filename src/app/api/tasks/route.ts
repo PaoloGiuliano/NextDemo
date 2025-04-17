@@ -25,7 +25,7 @@ type Bubble = {
   flattened_file_url: string;
 };
 export async function GET(
-  req: NextRequest
+  req: NextRequest,
 ): Promise<NextResponse<Task[] | { error: string }>> {
   const secret = req.headers.get("x-internal-secret");
   const project_id = req.nextUrl.searchParams.get("project_id");
@@ -34,7 +34,7 @@ export async function GET(
   const page = parseInt(req.nextUrl.searchParams.get("page") || "0", 10);
   const pageCount = parseInt(
     req.nextUrl.searchParams.get("page_count") || "10",
-    10
+    10,
   );
 
   if (secret !== process.env.INTERNAL_SECRET) {
@@ -70,14 +70,14 @@ export async function GET(
     const tasks = tasksResults.rows as Task[];
 
     const bubblesResults = await client.query(
-      "SELECT * FROM bubbles WHERE project_id = $1 AND task_id = ANY($2) ORDER BY original_created_at DESC",
-      [project_id, tasks.map((task) => task.id)]
+      "SELECT * FROM bubbles WHERE project_id = $1 AND task_id = ANY($2) ORDER BY original_created_at ASC",
+      [project_id, tasks.map((task) => task.id)],
     );
     const bubbles = bubblesResults.rows as Bubble[];
 
     const enrichedTasks = tasks.map((task) => {
       const relatedBubbles = bubbles.filter(
-        (bubble) => bubble.task_id === task.id
+        (bubble) => bubble.task_id === task.id,
       );
       return { ...task, bubbles: relatedBubbles };
     });
@@ -87,7 +87,7 @@ export async function GET(
     console.error((err as Error).stack);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     client.release(); // ✅ this always runs
