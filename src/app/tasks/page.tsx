@@ -294,7 +294,7 @@ export default function Tasks() {
             return (
               <div
                 key={task.id}
-                className="flex w-full flex-col justify-between rounded-t-sm border-[#15448c80] bg-gray-100 p-4 shadow-xl ring-2 shadow-gray-500 ring-gray-300"
+                className="flex w-full flex-col justify-between rounded-t-sm border-gray-300 bg-gray-100 p-4 shadow-xl shadow-gray-500"
               >
                 <div className="flex items-start justify-between border-b-2 border-gray-200">
                   <div>
