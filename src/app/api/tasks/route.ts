@@ -24,6 +24,9 @@ type Bubble = {
   original_url: string;
   flattened_file_url: string;
 };
+type Count = {
+  count: string;
+};
 export async function GET(
   req: NextRequest,
 ): Promise<NextResponse<Task[] | { error: string }>> {
@@ -48,25 +51,32 @@ export async function GET(
     let query = `SELECT id, name, status_id, project_id, floorplan_id, TO_CHAR(updated_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI:SS AM') AS modified_at, pos_x, pos_y 
        FROM tasks 
        WHERE project_id = $1`;
+    let taskCountQuery = `SELECT count(id) FROM tasks WHERE project_id = $1`;
 
     const params: any[] = [project_id];
+    const countParams: any[] = [project_id];
+    let countParamIndex = 2;
     let paramIndex = 2;
 
     if (status_id) {
       query += ` AND status_id = $${paramIndex++}`;
+      taskCountQuery += ` AND status_id = $${countParamIndex++}`;
       params.push(status_id);
+      countParams.push(floorplan_id);
     }
     if (floorplan_id) {
       query += ` AND floorplan_id = $${paramIndex++}`;
+      taskCountQuery += ` AND floorplan_id = $${countParamIndex++}`;
       params.push(floorplan_id);
+      countParams.push(floorplan_id);
     }
 
     query += ` ORDER BY updated_at DESC LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
     params.push(pageCount, page * pageCount);
 
-    console.log(query, params);
-
     const tasksResults = await client.query(query, params);
+    const taskCountResults = await client.query(taskCountQuery, countParams);
+    const taskCount = taskCountResults.rows as Count[];
     const tasks = tasksResults.rows as Task[];
 
     const bubblesResults = await client.query(
@@ -82,7 +92,12 @@ export async function GET(
       return { ...task, bubbles: relatedBubbles };
     });
 
-    return NextResponse.json(enrichedTasks);
+    return NextResponse.json(enrichedTasks, {
+      status: 200,
+      headers: {
+        "x-task-count": `${taskCount[0].count}`,
+      },
+    });
   } catch (err) {
     console.error((err as Error).stack);
     return NextResponse.json(

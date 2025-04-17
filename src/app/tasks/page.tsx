@@ -66,6 +66,7 @@ interface Bubble {
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [taskCount, setTaskCount] = useState(0);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [floorplans, setFloorplans] = useState<Floorplan[]>([]);
   const [selectedFloorplan, setSelectedFloorplan] = useState<Floorplan | null>(
@@ -75,7 +76,7 @@ export default function Tasks() {
   const [selectedStatus, setSelectedStatus] = useState<Status | null>(null);
   const [page, setPage] = useState<number>(0);
   const pageCount = [10, 20, 30, 40, 50];
-  const [selectedPageCount, setSelectedPageCount] = useState<number | null>(10);
+  const [selectedPageCount, setSelectedPageCount] = useState<number>(10);
   const [loading, setLoading] = useState(true);
   const fetchProjects = async () => {
     try {
@@ -153,6 +154,8 @@ export default function Tasks() {
       });
       if (!response.ok) throw new Error("Failed to fetch tasks");
       const tasks = await response.json();
+      const taskCount = response.headers.get("x-task-count");
+      setTaskCount(taskCount ? parseInt(taskCount) : 0);
       setTasks(tasks);
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -171,6 +174,9 @@ export default function Tasks() {
   useEffect(() => {
     fetchProjects(); // Fetch projects when the component mounts
   }, []);
+  useEffect(() => {
+    setPage(0); // Reset page when filters change
+  }, [selectedFloorplan, selectedPageCount, selectedStatus, selectedProject]);
 
   useEffect(() => {
     if (selectedProject) fetchTasks(selectedProject);
@@ -284,10 +290,6 @@ export default function Tasks() {
             const imageWidth = floorplan ? floorplan.sheets[0].file_width : 0;
             const percentX = floorplan ? (task.pos_x / imageWidth) * 100 : 0;
             const percentY = floorplan ? (task.pos_y / imageHeight) * 100 : 0;
-            console.log(
-              `${task.name} - pos_x: ${task.pos_x} | pos_y: ${task.pos_y} | percentX: ${percentX} | percentY: ${percentY} | imageWidth: ${imageWidth}  | imageHeight: ${imageHeight}`,
-            );
-            console.log(status?.color);
 
             return (
               <div
@@ -349,7 +351,7 @@ export default function Tasks() {
                       ></img>
                     </a>
                     <div
-                      className="absolute z-10 h-10 w-10 translate-x-[-50%] translate-y-[-50%] rounded-2xl"
+                      className="absolute z-10 h-2 w-2 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-4 sm:w-4 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
                       style={{
                         top: `${percentY}%`,
                         left: `${percentX}%`,
@@ -377,15 +379,20 @@ export default function Tasks() {
       </div>
 
       {/* Pagination */}
-      <div
-        hidden={tasks.length === 0}
-        className="mt-6 flex w-full items-center justify-center gap-4"
-      >
-        <button className="px-4 py-2" onClick={() => navigatePage("back")}>
+      <div className="mt-6 flex w-full items-center justify-center gap-4">
+        <button
+          disabled={page <= 0}
+          className="px-4 py-2 disabled:opacity-50"
+          onClick={() => navigatePage("back")}
+        >
           <BackwardIcon className="h-10 w-10 fill-red-500 text-red-400 hover:cursor-pointer" />
         </button>
         <span className="text-sm">Page {page + 1}</span>
-        <button className="px-4 py-2" onClick={() => navigatePage("next")}>
+        <button
+          disabled={taskCount - (page + 1) * selectedPageCount <= 0}
+          className="px-4 py-2 disabled:opacity-50"
+          onClick={() => navigatePage("next")}
+        >
           <ForwardIcon className="h-10 w-10 fill-green-500 text-green-400 hover:cursor-pointer" />
         </button>
       </div>

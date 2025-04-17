@@ -11,14 +11,14 @@ type DropdownObject = {
 type Props<T extends DropdownObject | string | number> = {
   items: T[];
   selected: T | null;
-  setSelected: (item: T | null) => void;
+  setSelected: (item: T) => void;
   title?: string;
   placeholder?: string;
   className?: string;
 };
 
 export default function CustomDropdown<
-  T extends DropdownObject | string | number
+  T extends DropdownObject | string | number,
 >({
   items,
   selected,
@@ -79,13 +79,13 @@ export default function CustomDropdown<
       <p>{title}</p>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="border border-gray-300 px-4 py-2 rounded text-left bg-white hover:cursor-pointer"
+        className="rounded border border-gray-300 bg-white px-4 py-2 text-left hover:cursor-pointer"
       >
         {selected ? getDisplayName(selected) + " ⤵ " : placeholder + " ⤵ "}
       </button>
 
       {open && (
-        <ul className="absolute mt-1 min-w-full whitespace-nowrap border border-gray-300 rounded bg-white shadow z-10 max-h-60 overflow-auto">
+        <ul className="absolute z-10 mt-1 max-h-60 min-w-full overflow-auto rounded border border-gray-300 bg-white whitespace-nowrap shadow">
           {items.map((item) => (
             <li
               key={getItemKey(item)}
@@ -93,7 +93,7 @@ export default function CustomDropdown<
                 setSelected(item);
                 setOpen(false);
               }}
-              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              className="cursor-pointer px-4 py-2 hover:bg-gray-100"
               style={{ color: getItemColor(item) }}
             >
               <div>
