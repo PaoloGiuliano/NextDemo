@@ -335,7 +335,7 @@ export default function Tasks() {
                         />
                       </a>
                     ))}
-                  <div className="relative col-start-4 col-end-7 row-start-1 row-end-3 h-full w-full overflow-hidden rounded-sm ring-1 ring-black">
+                  <div className="relative col-start-4 col-end-7 row-start-1 row-end-3 h-full w-full overflow-hidden rounded-sm ring-1 ring-gray-300">
                     <a
                       className=""
                       href={floorplan?.sheets[0].file_url}
