@@ -351,7 +351,7 @@ export default function Tasks() {
                       ></img>
                     </a>
                     <div
-                      className="absolute z-10 h-2 w-2 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-4 sm:w-4 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
+                      className="absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
                       style={{
                         top: `${percentY}%`,
                         left: `${percentX}%`,
