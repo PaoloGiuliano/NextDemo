@@ -51,7 +51,9 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
           x
         </button>
         <p>{task?.name}</p>
-        {task?.bubbles.map((bubble) => <div>{bubble.content}</div>)}
+        {task?.bubbles.map((bubble) => (
+          <div key={bubble.id}>{bubble.content}</div>
+        ))}
       </div>
     </div>
   );
