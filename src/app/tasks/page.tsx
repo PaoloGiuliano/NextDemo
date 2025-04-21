@@ -52,6 +52,7 @@ interface Task {
 interface Bubble {
   id: string;
   updated_at: string;
+  created_at: string;
   content: string;
   kind: number;
   task_id: string;
