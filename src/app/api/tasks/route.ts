@@ -5,6 +5,7 @@ type Task = {
   id: string;
   name: string;
   modified_at: string;
+  latest_component_device_updated_at: string;
   project_id: string;
   status_id: string;
   floorplan_id: string;
@@ -48,7 +49,7 @@ export async function GET(
 
   const client = await pool.connect();
   try {
-    let query = `SELECT id, name, status_id, project_id, floorplan_id, TO_CHAR(updated_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI:SS AM') AS modified_at, pos_x, pos_y 
+    let query = `SELECT id, name, status_id, project_id, floorplan_id, TO_CHAR(latest_component_device_updated_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI:SS AM') AS modified_at, pos_x, pos_y 
        FROM tasks 
        WHERE project_id = $1`;
     let taskCountQuery = `SELECT count(id) FROM tasks WHERE project_id = $1`;
@@ -71,7 +72,7 @@ export async function GET(
       countParams.push(floorplan_id);
     }
 
-    query += ` ORDER BY updated_at DESC LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
+    query += ` ORDER BY latest_component_device_updated_at DESC LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
     params.push(pageCount, page * pageCount);
 
     const tasksResults = await client.query(query, params);

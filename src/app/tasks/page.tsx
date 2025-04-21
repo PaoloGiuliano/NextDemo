@@ -268,7 +268,7 @@ export default function Tasks() {
         )}
       </div>
       {/* Tasks Grid */}
-      <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
+      <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-2">
         {loading ? (
           Array.from({ length: selectedPageCount || 6 }).map((_, idx) => (
             <div
@@ -332,7 +332,7 @@ export default function Tasks() {
                         <img
                           src={bubble.thumb_url}
                           alt="Bubble"
-                          className="rounded object-cover sm:w-10 md:w-18 lg:w-30 xl:w-30 2xl:w-50"
+                          className="w-20 rounded object-cover sm:w-30 md:w-30 lg:w-30 xl:w-30 2xl:w-50"
                         />
                       </a>
                     ))}
