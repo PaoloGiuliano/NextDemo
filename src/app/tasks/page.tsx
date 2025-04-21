@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { MapPinIcon } from "@heroicons/react/16/solid";
 import { BackwardIcon } from "@heroicons/react/24/outline";
 import { ForwardIcon } from "@heroicons/react/24/outline";
+import TaskModal from "@/components/TaskModal";
 interface Project {
   id: string;
   name: string;
@@ -67,6 +68,7 @@ interface Bubble {
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskCount, setTaskCount] = useState(0);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [floorplans, setFloorplans] = useState<Floorplan[]>([]);
@@ -79,6 +81,7 @@ export default function Tasks() {
   const pageCount = [10, 20, 30, 40, 50];
   const [selectedPageCount, setSelectedPageCount] = useState<number>(10);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const fetchProjects = async () => {
     try {
       const url = `/api/projects`;
@@ -229,18 +232,6 @@ export default function Tasks() {
 
       {/* Pills */}
       <div className="mt-4 mb-4 flex flex-wrap gap-2">
-        {/* {selectedProject && (
-          <div className="flex items-center bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
-            {selectedProject.name}
-            <button
-              onClick={() => setSelectedProject(null)}
-              className="ml-2 text-gray-500 hover:text-gray-700 font-bold hover:cursor-pointer"
-            >
-              ×
-            </button>
-          </div>
-        )}
- */}
         {selectedFloorplan && (
           <div className="flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-800">
             {selectedFloorplan.name}
@@ -370,11 +361,23 @@ export default function Tasks() {
                     </div>
                   </div>
                 </div>
-                {floorplan?.name && (
-                  <p className="mt-2 text-sm text-gray-700">
-                    {floorplan.name} - {floorplan.description}
-                  </p>
-                )}
+                <div className="flex justify-between">
+                  {floorplan?.name && (
+                    <p className="mt-3 text-sm text-gray-700">
+                      {floorplan.name} - {floorplan.description}
+                    </p>
+                  )}
+                  <button
+                    className="mt-3 rounded border-2 border-green-500 p-1 hover:cursor-pointer"
+                    onClick={() => {
+                      setIsModalOpen(true);
+                      const selectedTask = tasks.find((t) => t.id === task.id);
+                      setSelectedTask(selectedTask || null);
+                    }}
+                  >
+                    expand
+                  </button>
+                </div>
               </div>
             );
           })
@@ -399,6 +402,11 @@ export default function Tasks() {
           <ForwardIcon className="h-10 w-10 fill-green-500 text-green-400 hover:cursor-pointer" />
         </button>
       </div>
+      <TaskModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        task={selectedTask}
+      ></TaskModal>
     </div>
   );
 }
