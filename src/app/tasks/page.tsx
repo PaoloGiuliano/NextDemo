@@ -264,7 +264,7 @@ export default function Tasks() {
           Array.from({ length: selectedPageCount || 6 }).map((_, idx) => (
             <div
               key={idx}
-              className="h-40 w-full animate-pulse rounded-xl bg-gray-200"
+              className="h-80 w-full animate-pulse rounded-xl bg-gray-200"
             />
           ))
         ) : tasks.length === 0 ? (
@@ -372,6 +372,7 @@ export default function Tasks() {
                       setIsModalOpen(true);
                       const selectedTask = tasks.find((t) => t.id === task.id);
                       setSelectedTask(selectedTask || null);
+                      document.documentElement.style.overflow = "hidden";
                     }}
                   >
                     expand
@@ -403,7 +404,10 @@ export default function Tasks() {
       </div>
       <TaskModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          document.documentElement.style.overflow = "";
+        }}
         task={selectedTask}
         status={statuses.find((s) => s.id == selectedTask?.status_id) || null}
         floorplan={
