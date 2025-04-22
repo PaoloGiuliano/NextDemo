@@ -10,7 +10,6 @@ interface Project {
   id: string;
   name: string;
 }
-
 interface Floorplan {
   id: string;
   name: string;
@@ -406,6 +405,10 @@ export default function Tasks() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         task={selectedTask}
+        status={statuses.find((s) => s.id == selectedTask?.status_id) || null}
+        floorplan={
+          floorplans.find((f) => f.id === selectedTask?.floorplan_id) || null
+        }
       ></TaskModal>
     </div>
   );
