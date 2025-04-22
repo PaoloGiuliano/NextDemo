@@ -90,7 +90,7 @@ export default function TaskModal({
             ✕
           </button>
         </div>
-        <div className="grid h-full grid-cols-4 grid-rows-4 pt-4">
+        <div className="grid h-full grid-cols-4 grid-rows-4 pt-8">
           <div className="col-span-2 row-span-1 border border-red-500">
             {task?.name}
           </div>
