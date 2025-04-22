@@ -95,7 +95,7 @@ export default function TaskModal({
             {task?.name}
           </div>
           <div className="col-span-2 row-span-2 border border-blue-500">
-            Floorplan
+            {floorplan?.name}
           </div>
           <div className="col-span-2 row-span-3 overflow-auto border border-green-500">
             {task?.bubbles.map((bubble) => (
