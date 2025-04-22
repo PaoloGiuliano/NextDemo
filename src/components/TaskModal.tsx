@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import Image from "next/image";
+import { MapPinIcon } from "@heroicons/react/16/solid";
 interface Status {
   id: string;
   name: string;
@@ -78,6 +79,12 @@ export default function TaskModal({
     return () => document.removeEventListener("keydown", handleEsc);
   }, [onClose]);
   if (!isOpen) return null;
+  const imageHeight = floorplan ? floorplan.sheets[0].file_height : 0;
+  const imageWidth = floorplan ? floorplan.sheets[0].file_width : 0;
+  const percentX = floorplan ? ((task ? task.pos_x : 0) / imageWidth) * 100 : 0;
+  const percentY = floorplan
+    ? ((task ? task.pos_y : 0) / imageHeight) * 100
+    : 0;
   return (
     <div className="fixed inset-0 z-50 flex h-full flex-col items-center justify-center bg-black/50">
       <div className="relative h-3/4 w-3/4 rounded bg-white p-6 shadow-lg">
@@ -92,14 +99,50 @@ export default function TaskModal({
             ✕
           </button>
         </div>
-        <div className="grid h-full grid-cols-4 grid-rows-4 gap-2 pt-8">
-          <div className="col-span-2 row-span-1 border border-red-500">
-            {task?.name}
+        <div className="grid h-full grid-cols-8 grid-rows-8 gap-2 pt-8">
+          <div className="col-span-4 row-span-1 bg-gray-100">
+            <p className="mx-4 mt-4 text-xl font-bold underline">
+              {task?.name}
+            </p>
+            <p
+              className="text-md mx-4 mt-2 italic"
+              style={{ color: status?.color }}
+            >
+              {status?.name}
+            </p>
           </div>
-          <div className="col-span-2 row-span-2 border border-blue-500">
-            {floorplan?.name}
+          <div className="relative col-span-4 row-span-3 bg-gray-100">
+            <a
+              className="hover:cursor-pointer"
+              href={floorplan ? floorplan?.sheets[0].original_url : ""}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <Image
+                src={floorplan ? floorplan?.sheets[0].thumb_url : ""}
+                alt="floorplan"
+                fill={true}
+                className="absolute rounded hover:ring-2 hover:ring-gray-400"
+              />
+            </a>
+            <div
+              className="absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
+              style={{
+                top: `${percentY}%`,
+                left: `${percentX}%`,
+              }}
+            >
+              <MapPinIcon
+                className="translate-y-[-15px]"
+                style={{
+                  color: `${status ? status.color : "#000000"}`,
+                  fill: `${status ? status.color : "#FFFFFF"}CC`,
+                  stroke: "#000000",
+                }}
+              />
+            </div>
           </div>
-          <div className="col-span-2 row-span-3 overflow-auto border border-green-500">
+          <div className="col-span-4 row-span-8 overflow-auto bg-gray-100">
             {task?.bubbles.map((bubble) => (
               <div className="relative flex justify-between" key={bubble.id}>
                 {[1, 2, 10, 11, 12, 13].includes(bubble.kind) && (
@@ -138,7 +181,7 @@ export default function TaskModal({
                       )}
                     </div>
 
-                    <p className="absolute right-0 bottom-0 text-xs text-gray-500">
+                    <p className="absolute right-0 bottom-0 mr-4 text-xs text-gray-500">
                       {bubble.formatted_created_at}
                     </p>
                   </>
@@ -147,10 +190,10 @@ export default function TaskModal({
             ))}
           </div>
 
-          <div className="col-span-1 row-span-2 border border-pink-500">
+          <div className="col-span-2 row-span-5 bg-gray-100">
             Information/Statistics
           </div>
-          <div className="col-span-1 row-span-2 border border-gray-600">
+          <div className="col-span-2 row-span-5 bg-gray-100">
             Status Changes
           </div>
         </div>
