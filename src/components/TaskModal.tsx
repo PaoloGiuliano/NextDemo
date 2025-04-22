@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import Image from "next/image";
 interface Status {
   id: string;
   name: string;
@@ -20,6 +21,7 @@ interface Bubble {
   id: string;
   updated_at: string;
   created_at: string;
+  formatted_created_at: string;
   content: string;
   kind: number;
   task_id: string;
@@ -90,7 +92,7 @@ export default function TaskModal({
             ✕
           </button>
         </div>
-        <div className="grid h-full grid-cols-4 grid-rows-4 pt-8">
+        <div className="grid h-full grid-cols-4 grid-rows-4 gap-2 pt-8">
           <div className="col-span-2 row-span-1 border border-red-500">
             {task?.name}
           </div>
@@ -102,26 +104,42 @@ export default function TaskModal({
               <div className="relative flex justify-between" key={bubble.id}>
                 {[1, 2, 10, 11, 12, 13].includes(bubble.kind) && (
                   <>
-                    <div className="m-2 rounded border border-blue-300 p-2">
+                    <div className="mx-2 mt-2 rounded px-2 pt-2">
                       {[11, 12, 13].includes(bubble.kind) ? (
                         <a
-                          className="group relative w-1/2 hover:cursor-pointer"
-                          href={bubble.original_url}
+                          className="group relative hover:cursor-pointer"
+                          href={
+                            bubble.flattened_file_url
+                              ? bubble.flattened_file_url
+                              : bubble.original_url
+                          }
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          <img className="block" src={bubble.thumb_url}></img>
-                          <p className="absolute top-0 right-0 m-1 hidden bg-white p-1 text-black group-hover:block">
+                          <Image
+                            className="block"
+                            src={bubble.thumb_url}
+                            alt="fw_image"
+                            width={300}
+                            height={300}
+                          />
+                          <p className="absolute top-0 right-0 mx-1 mt-1 hidden bg-white px-1 pt-1 text-black opacity-40 group-hover:block">
                             {bubble.kind}
                           </p>
                         </a>
+                      ) : bubble.kind == 1 ? (
+                        <p className="rounded border border-blue-300 p-1 px-1">
+                          {bubble.content}
+                        </p>
                       ) : (
-                        <p>{bubble.content}</p>
+                        <p className="px-2 text-sm text-gray-500">
+                          {bubble.content}
+                        </p>
                       )}
                     </div>
 
-                    <p className="absolute right-0 bottom-0 mr-2 mb-2 text-xs text-gray-500">
-                      {bubble.created_at}
+                    <p className="absolute right-0 bottom-0 text-xs text-gray-500">
+                      {bubble.formatted_created_at}
                     </p>
                   </>
                 )}
