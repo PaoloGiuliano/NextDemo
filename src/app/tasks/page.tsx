@@ -292,6 +292,7 @@ export default function Tasks() {
             const imageWidth = floorplan ? floorplan.sheets[0].file_width : 0;
             const percentX = floorplan ? (task.pos_x / imageWidth) * 100 : 0;
             const percentY = floorplan ? (task.pos_y / imageHeight) * 100 : 0;
+            console.log(percentX, percentY);
 
             return (
               <div
