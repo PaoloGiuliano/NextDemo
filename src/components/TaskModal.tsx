@@ -100,7 +100,7 @@ export default function TaskModal({
           </button>
         </div>
         <div className="h-full overflow-auto pt-8 md:grid md:grid-cols-8 md:grid-rows-8 md:gap-2">
-          <div className="col-span-4 row-span-1 bg-gray-100">
+          <div className="col-span-4 row-span-2 bg-gray-100 lg:row-span-1">
             <p className="mx-4 mt-4 text-xl font-bold underline">
               {task?.name}
             </p>
@@ -142,7 +142,7 @@ export default function TaskModal({
               </div>
             </a>
           </div>
-          <div className="col-span-4 row-span-8 overflow-auto bg-gray-100">
+          <div className="col-span-4 row-span-6 overflow-auto bg-gray-100 lg:row-span-7">
             {task?.bubbles.map((bubble) => (
               <div className="relative flex justify-between" key={bubble.id}>
                 {[1, 2, 10, 11, 12, 13].includes(bubble.kind) && (

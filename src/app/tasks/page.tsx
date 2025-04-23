@@ -380,7 +380,7 @@ export default function Tasks() {
                         }}
                       />
                     </div>
-                    <p className="absolute top-0 right-0 left-0 rounded-t bg-black/75 p-2 text-center text-lg text-white">
+                    <p className="absolute top-0 right-0 left-0 rounded-t bg-black/75 p-2 text-center text-xs text-white md:text-base">
                       {floorplan?.description} - {floorplan?.name}
                     </p>
                   </div>
