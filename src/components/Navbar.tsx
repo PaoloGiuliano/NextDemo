@@ -21,7 +21,7 @@ const Navbar = () => {
   useEffect(() => {
     setIsMobile(window.innerWidth < 768);
   }, []);
-  const sizeClass = isMobile ? "h-20 w-20" : "h-32 w-32";
+  const sizeClass = isMobile ? "h-10 w-10" : "h-15 w-15";
 
   return (
     <nav className="bg-[#15448c] p-4 text-white">
@@ -30,7 +30,7 @@ const Navbar = () => {
           <img
             src="/dd-logo.svg"
             alt="dd-logo"
-            className={`sature-100 ${sizeClass} h-20 w-20 p-2 brightness-0 hue-rotate-180 invert sepia filter`}
+            className={`sature-100 ${sizeClass} brightness-0 hue-rotate-180 invert sepia filter`}
           />
         </Link>
         <ul className="hidden space-x-6 md:flex">
@@ -57,7 +57,7 @@ const Navbar = () => {
             className="text-white"
           >
             <svg
-              className="h-15 w-15 hover:cursor-pointer"
+              className="h-10 w-10 hover:cursor-pointer"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

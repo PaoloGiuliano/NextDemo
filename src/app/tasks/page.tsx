@@ -260,7 +260,7 @@ export default function Tasks() {
         )}
       </div>
       {/* Tasks Grid */}
-      <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-2">
+      <div className="grid w-full grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-2">
         {loading ? (
           Array.from({ length: selectedPageCount || 6 }).map((_, idx) => (
             <div
@@ -287,11 +287,32 @@ export default function Tasks() {
             return (
               <div
                 key={task.id}
-                className="flex w-full flex-col justify-between rounded-t-sm border-gray-300 bg-gray-100 p-4 shadow-xl shadow-gray-500"
+                className="flex w-full flex-col justify-between rounded-sm bg-gray-100 p-4"
+                // style={{
+                //   boxShadow: `${status?.color}66 -5px 5px,
+                //               ${status?.color}4D -10px 10px,
+                //               ${status?.color}33 -15px 15px,
+                //               ${status?.color}1A -20px 20px,
+                //               ${status?.color}0D -25px 25px`,
+                // }}
               >
                 <div className="flex items-start justify-between border-b-2 border-gray-200">
                   <div>
-                    <h1 className="text-2xl">{task.name}</h1>
+                    <h1 className="text-2xl text-gray-700">
+                      <button
+                        className="underline-offset-5 hover:cursor-pointer hover:text-gray-900 hover:underline"
+                        onClick={() => {
+                          setIsModalOpen(true);
+                          const selectedTask = tasks.find(
+                            (t) => t.id === task.id,
+                          );
+                          setSelectedTask(selectedTask || null);
+                          document.documentElement.style.overflow = "hidden";
+                        }}
+                      >
+                        {task.name}
+                      </button>
+                    </h1>
                     <p
                       className="pt-1 pr-2 pb-1 text-sm font-bold"
                       style={{ color: status?.color }}
@@ -324,7 +345,7 @@ export default function Tasks() {
                         <img
                           src={bubble.thumb_url}
                           alt="Bubble"
-                          className="w-20 rounded object-cover sm:w-30 md:w-30 lg:w-30 xl:w-30 2xl:w-50"
+                          className="w-20 rounded object-cover ring ring-gray-200 sm:w-30 md:w-30 lg:w-30 xl:w-30 2xl:w-50"
                         />
                       </a>
                     ))}
@@ -359,25 +380,10 @@ export default function Tasks() {
                         }}
                       />
                     </div>
-                  </div>
-                </div>
-                <div className="flex justify-between">
-                  {floorplan?.name && (
-                    <p className="mt-3 text-sm text-gray-700">
-                      {floorplan.name} - {floorplan.description}
+                    <p className="absolute top-0 right-0 left-0 rounded-t bg-black/75 p-2 text-center text-lg text-white">
+                      {floorplan?.description} - {floorplan?.name}
                     </p>
-                  )}
-                  <button
-                    className="mt-3 rounded border-2 border-green-500 p-1 hover:cursor-pointer"
-                    onClick={() => {
-                      setIsModalOpen(true);
-                      const selectedTask = tasks.find((t) => t.id === task.id);
-                      setSelectedTask(selectedTask || null);
-                      document.documentElement.style.overflow = "hidden";
-                    }}
-                  >
-                    expand
-                  </button>
+                  </div>
                 </div>
               </div>
             );
