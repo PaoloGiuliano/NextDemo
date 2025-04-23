@@ -89,7 +89,7 @@ export default function TaskModal({
     <div className="fixed inset-0 z-50 flex h-full flex-col items-center justify-center bg-black/50">
       <div className="relative h-full w-full rounded bg-white p-6 shadow-lg md:h-3/4 md:w-3/4">
         <div
-          className="absolute top-0 right-0 left-0 flex justify-end rounded-tl rounded-tr"
+          className="absolute top-0 right-0 left-0 z-50 flex justify-end rounded-tl rounded-tr"
           style={{ backgroundColor: status?.color || "white" }}
         >
           <button

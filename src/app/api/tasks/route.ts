@@ -84,7 +84,7 @@ export async function GET(
     const tasks = tasksResults.rows as Task[];
 
     const bubblesResults = await client.query(
-      "SELECT *, TO_CHAR(created_at AT TIME ZONE 'America/Toronto', 'YYYY/MM/DD HH12:MI AM') AS formatted_created_at FROM bubbles WHERE project_id = $1 AND task_id = ANY($2) ORDER BY created_at ASC",
+      "SELECT *, TO_CHAR(created_at AT TIME ZONE 'America/Toronto', 'YY/MM/DD FMHH12:MI am') AS formatted_created_at FROM bubbles WHERE project_id = $1 AND task_id = ANY($2) ORDER BY created_at ASC",
       [project_id, tasks.map((task) => task.id)],
     );
     const bubbles = bubblesResults.rows as Bubble[];
