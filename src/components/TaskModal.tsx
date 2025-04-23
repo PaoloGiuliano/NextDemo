@@ -94,7 +94,7 @@ export default function TaskModal({
         >
           <button
             onClick={onClose}
-            className="h-full rounded-tr px-2 py-1 text-xs text-gray-600 hover:cursor-pointer hover:border-l-1 hover:bg-red-600 hover:text-white"
+            className="h-full rounded-tr px-2 py-1 text-2xl text-gray-600 hover:cursor-pointer hover:border-l-1 hover:bg-red-600 hover:text-white md:text-sm"
           >
             ✕
           </button>
