@@ -100,8 +100,8 @@ export default function TaskModal({
           </button>
         </div>
         <div className="h-full overflow-auto pt-8 md:grid md:grid-cols-8 md:grid-rows-8 md:gap-2">
-          <div className="relative col-span-4 row-span-2 bg-gray-100 lg:row-span-1">
-            <p className="m-2 p-2 text-center text-xl font-bold underline md:absolute md:top-[50%] md:left-[50%] md:m-0 md:translate-x-[-50%] md:translate-y-[-50%] md:p-0">
+          <div className="relative col-span-4 row-span-2 min-h-[20px] bg-gray-100 text-wrap lg:row-span-1">
+            <p className="m-2 w-full p-2 text-center text-base font-bold underline md:absolute md:top-[50%] md:left-[50%] md:m-0 md:translate-x-[-50%] md:translate-y-[-50%] lg:text-xl">
               {task?.name}
             </p>
           </div>
