@@ -168,7 +168,7 @@ export default function TaskModal({
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          <div className="h-10 w-10 sm:h-20 sm:w-20 md:h-25 md:w-25 lg:h-50 lg:w-50 xl:h-70 xl:w-70">
+                          <div className="h-30 w-30 sm:h-40 sm:w-40 md:h-40 md:w-40 lg:h-50 lg:w-50 xl:h-70 xl:w-70">
                             <Image
                               className="block"
                               src={bubble.thumb_url}

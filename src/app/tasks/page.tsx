@@ -2,7 +2,11 @@
 
 import CustomDropdown from "@/components/CustomDropdown";
 import { useEffect, useState } from "react";
-import { MapPinIcon } from "@heroicons/react/16/solid";
+import {
+  ArrowRightCircleIcon,
+  ArrowTurnDownRightIcon,
+  MapPinIcon,
+} from "@heroicons/react/16/solid";
 import { BackwardIcon } from "@heroicons/react/24/outline";
 import { ForwardIcon } from "@heroicons/react/24/outline";
 import TaskModal from "@/components/TaskModal";
@@ -306,7 +310,7 @@ export default function Tasks() {
               >
                 <div className="flex items-start justify-between border-b-2 border-gray-200">
                   <div>
-                    <h1 className="text-2xl text-gray-700">
+                    <h1 className="text-gray-700 md:text-2xl">
                       <button
                         className="underline-offset-5 hover:cursor-pointer hover:text-gray-900 hover:underline"
                         onClick={() => {
@@ -319,6 +323,7 @@ export default function Tasks() {
                         }}
                       >
                         {task.name}
+                        <ArrowTurnDownRightIcon className="h-5 w-5" />
                       </button>
                     </h1>
                     <p
@@ -390,7 +395,10 @@ export default function Tasks() {
                         }}
                       />
                     </div>
-                    <p className="absolute top-0 right-0 left-0 rounded-t bg-black/75 p-2 text-center text-xs text-white md:text-base">
+                    <p
+                      className="absolute top-0 right-0 left-0 bg-black/75 p-2 text-center text-xs text-white md:text-base"
+                      style={{}}
+                    >
                       {floorplan?.description} - {floorplan?.name}
                     </p>
                   </div>
