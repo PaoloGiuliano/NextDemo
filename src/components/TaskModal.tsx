@@ -100,15 +100,9 @@ export default function TaskModal({
           </button>
         </div>
         <div className="h-full overflow-auto pt-8 md:grid md:grid-cols-8 md:grid-rows-8 md:gap-2">
-          <div className="col-span-4 row-span-2 bg-gray-100 lg:row-span-1">
-            <p className="mx-4 mt-4 text-xl font-bold underline">
+          <div className="relative col-span-4 row-span-2 bg-gray-100 lg:row-span-1">
+            <p className="m-2 p-2 text-center text-xl font-bold underline md:absolute md:top-[50%] md:left-[50%] md:m-0 md:translate-x-[-50%] md:translate-y-[-50%] md:p-0">
               {task?.name}
-            </p>
-            <p
-              className="text-md mx-4 mt-2 italic"
-              style={{ color: status?.color }}
-            >
-              {status?.name}
             </p>
           </div>
           <div className="relative col-span-4 aspect-video h-auto w-full bg-gray-100 sm:row-span-1 md:row-span-2 md:aspect-auto md:h-full md:w-auto lg:row-span-3 xl:row-span-4 2xl:row-span-4">
