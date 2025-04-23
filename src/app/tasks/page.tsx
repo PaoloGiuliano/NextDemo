@@ -2,14 +2,11 @@
 
 import CustomDropdown from "@/components/CustomDropdown";
 import { useEffect, useState } from "react";
-import {
-  ArrowRightCircleIcon,
-  ArrowTurnDownRightIcon,
-  MapPinIcon,
-} from "@heroicons/react/16/solid";
+import { ArrowTurnDownRightIcon, MapPinIcon } from "@heroicons/react/16/solid";
 import { BackwardIcon } from "@heroicons/react/24/outline";
 import { ForwardIcon } from "@heroicons/react/24/outline";
 import TaskModal from "@/components/TaskModal";
+import Image from "next/image";
 interface Project {
   id: string;
   name: string;
@@ -339,12 +336,20 @@ export default function Tasks() {
                 </div>
 
                 <div className="mt-2 grid grid-cols-6 gap-2">
-                  {task.bubbles
-                    .filter(
+                  {(() => {
+                    const imageBubbles = task.bubbles.filter(
                       (b) => b.kind === 10 || b.kind === 11 || b.kind === 13,
-                    ) // only images
-                    .slice(-6) // get the last 6
-                    .map((bubble) => (
+                    );
+
+                    if (imageBubbles.length === 0) {
+                      return (
+                        <p className="text-sm text-gray-500 italic">
+                          No images
+                        </p>
+                      );
+                    }
+
+                    return imageBubbles.slice(-6).map((bubble) => (
                       <a
                         key={bubble.id}
                         href={
@@ -363,7 +368,9 @@ export default function Tasks() {
                           className="w-20 rounded object-cover ring ring-gray-200 sm:w-30 md:w-30 lg:w-30 xl:w-30 2xl:w-50"
                         />
                       </a>
-                    ))}
+                    ));
+                  })()}
+
                   <div className="relative col-start-4 col-end-7 row-start-1 row-end-3 h-full w-full overflow-hidden rounded-sm ring-1 ring-gray-300">
                     <a
                       className=""
@@ -371,13 +378,16 @@ export default function Tasks() {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <img
-                        className="scale-400"
-                        src={floorplan?.sheets[0].file_url}
+                      <Image
+                        className="h-full w-full scale-400"
+                        alt="floorplan"
+                        src={floorplan?.sheets[0].file_url || ""}
+                        width={2000}
+                        height={2000}
                         style={{
                           transformOrigin: `${percentX}% ${percentY}%`,
                         }}
-                      ></img>
+                      />
                     </a>
                     <div
                       className="absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
