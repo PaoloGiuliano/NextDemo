@@ -111,7 +111,7 @@ export default function TaskModal({
               {status?.name}
             </p>
           </div>
-          <div className="relative col-span-4 h-full bg-gray-100 sm:row-span-1 md:row-span-2 lg:row-span-3 xl:row-span-4 2xl:row-span-4">
+          <div className="relative col-span-4 aspect-video h-auto w-full bg-gray-100 sm:row-span-1 md:row-span-2 md:aspect-auto md:h-full md:w-auto lg:row-span-3 xl:row-span-4 2xl:row-span-4">
             <a
               className="hover:cursor-pointer"
               href={floorplan ? floorplan?.sheets[0].original_url : ""}
