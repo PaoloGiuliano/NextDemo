@@ -64,7 +64,15 @@ interface Bubble {
   original_url: string;
   flattened_file_url: string;
 }
+function getContrastTextColor(hex: string): "black" | "white" {
+  const color = hex.replace("#", "").padEnd(6, "0");
+  const r = parseInt(color.slice(0, 2), 16);
+  const g = parseInt(color.slice(2, 4), 16);
+  const b = parseInt(color.slice(4, 6), 16);
 
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.5 ? "black" : "white";
+}
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -315,7 +323,9 @@ export default function Tasks() {
                     </h1>
                     <p
                       className="pt-1 pr-2 pb-1 text-sm font-bold"
-                      style={{ color: status?.color }}
+                      style={{
+                        color: status?.color,
+                      }}
                     >
                       {status?.name}
                     </p>

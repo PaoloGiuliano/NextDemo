@@ -64,6 +64,15 @@ type TaskModalProps = {
   status: Status | null;
   floorplan: Floorplan | null;
 };
+function getContrastTextColor(hex: string): "black" | "white" {
+  const color = hex.replace("#", "").padEnd(6, "0");
+  const r = parseInt(color.slice(0, 2), 16);
+  const g = parseInt(color.slice(2, 4), 16);
+  const b = parseInt(color.slice(4, 6), 16);
+
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.5 ? "black" : "white";
+}
 export default function TaskModal({
   isOpen,
   onClose,
@@ -92,16 +101,22 @@ export default function TaskModal({
           className="absolute top-0 right-0 left-0 z-50 flex justify-end rounded-tl rounded-tr"
           style={{ backgroundColor: status?.color || "white" }}
         >
+          <p
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-sm italic"
+            style={{ color: getContrastTextColor(status?.color || "#FFFFFF") }}
+          >
+            {status?.name}
+          </p>
           <button
             onClick={onClose}
-            className="h-full rounded-tr px-2 py-1 text-2xl text-gray-600 hover:cursor-pointer hover:border-l-1 hover:bg-red-600 hover:text-white md:text-sm"
+            className="z-50 h-full rounded-tr px-2 py-1 text-2xl text-gray-600 hover:cursor-pointer hover:border-l-1 hover:bg-red-600 hover:text-white md:text-sm"
           >
             ✕
           </button>
         </div>
         <div className="h-full overflow-auto pt-8 md:grid md:grid-cols-8 md:grid-rows-8 md:gap-2">
           <div className="relative col-span-4 row-span-2 min-h-[20px] bg-gray-100 text-wrap lg:row-span-1">
-            <p className="m-2 w-full p-2 text-center text-base font-bold underline md:absolute md:top-[50%] md:left-[50%] md:m-0 md:translate-x-[-50%] md:translate-y-[-50%] lg:text-xl">
+            <p className="m-2 w-full p-2 text-center text-base font-bold underline md:absolute md:top-[50%] md:left-[50%] md:m-0 md:translate-x-[-50%] md:translate-y-[-50%] lg:text-2xl">
               {task?.name}
             </p>
           </div>
