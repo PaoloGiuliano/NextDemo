@@ -364,7 +364,7 @@ export default function Tasks() {
                         <img
                           src={bubble.thumb_url}
                           alt="Bubble"
-                          className="h-full object-cover py-1 pr-1"
+                          className="h-full w-full object-cover py-1 pr-1"
                         />
                       </a>
                     ));
@@ -378,7 +378,7 @@ export default function Tasks() {
                       rel="noopener noreferrer"
                     >
                       <Image
-                        className="scale-400"
+                        className="h-full w-full scale-400"
                         alt="floorplan"
                         src={
                           floorplan?.sheets[0].file_url ||
