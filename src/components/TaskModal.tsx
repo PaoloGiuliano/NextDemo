@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { MapPinIcon } from "@heroicons/react/16/solid";
 interface Status {
@@ -80,6 +80,19 @@ export default function TaskModal({
   status,
   floorplan,
 }: TaskModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  });
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -96,7 +109,10 @@ export default function TaskModal({
     : 0;
   return (
     <div className="fixed inset-0 z-50 flex h-full flex-col items-center justify-center bg-black/50">
-      <div className="relative h-full w-full rounded bg-white p-6 shadow-lg md:h-3/4 md:w-3/4">
+      <div
+        ref={modalRef}
+        className="relative h-full w-full rounded bg-white p-6 shadow-lg md:h-3/4 md:w-3/4"
+      >
         <div
           className="absolute top-0 right-0 left-0 z-50 flex justify-end rounded-tl rounded-tr"
           style={{ backgroundColor: status?.color || "white" }}

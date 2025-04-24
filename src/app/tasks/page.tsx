@@ -292,7 +292,6 @@ export default function Tasks() {
             const imageWidth = floorplan ? floorplan.sheets[0].file_width : 0;
             const percentX = floorplan ? (task.pos_x / imageWidth) * 100 : 0;
             const percentY = floorplan ? (task.pos_y / imageHeight) * 100 : 0;
-            console.log(percentX, percentY);
 
             return (
               <div
@@ -308,7 +307,7 @@ export default function Tasks() {
               >
                 <div className="flex items-start justify-between border-b-2 border-gray-200">
                   <div>
-                    <h1 className="text-gray-700 md:text-2xl">
+                    <h1 className="text-gray-600 md:text-2xl">
                       <button
                         className="underline-offset-5 hover:cursor-pointer hover:text-gray-900 hover:underline"
                         onClick={() => {
@@ -336,7 +335,7 @@ export default function Tasks() {
                   <p className="text-xs text-gray-600">{task.modified_at}</p>
                 </div>
 
-                <div className="mt-2 grid grid-cols-6 gap-2">
+                <div className="m-2 grid grid-cols-6">
                   {(() => {
                     const imageBubbles = task.bubbles.filter(
                       (b) => b.kind === 10 || b.kind === 11 || b.kind === 13,
@@ -349,7 +348,6 @@ export default function Tasks() {
                         </p>
                       );
                     }
-
                     return imageBubbles.slice(-6).map((bubble) => (
                       <a
                         key={bubble.id}
@@ -366,13 +364,13 @@ export default function Tasks() {
                         <img
                           src={bubble.thumb_url}
                           alt="Bubble"
-                          className="w-20 rounded object-cover ring ring-gray-200 sm:w-30 md:w-30 lg:w-30 xl:w-30 2xl:w-50"
+                          className="h-full object-cover py-1 pr-1"
                         />
                       </a>
                     ));
                   })()}
 
-                  <div className="relative col-start-4 col-end-7 row-start-1 row-end-3 h-full w-full overflow-hidden rounded-sm ring-1 ring-gray-300">
+                  <div className="relative col-start-4 col-end-7 row-start-1 row-end-3 flex h-full w-full flex-col overflow-hidden rounded-sm ring-1 ring-gray-300">
                     <a
                       className=""
                       href={floorplan?.sheets[0].file_url}
@@ -380,13 +378,17 @@ export default function Tasks() {
                       rel="noopener noreferrer"
                     >
                       <Image
-                        className="h-full w-full scale-400"
+                        className="scale-400"
                         alt="floorplan"
-                        src={floorplan?.sheets[0].file_url || ""}
+                        src={
+                          floorplan?.sheets[0].file_url ||
+                          "/Image-not-found.png"
+                        }
                         width={2000}
                         height={2000}
                         style={{
                           transformOrigin: `${percentX}% ${percentY}%`,
+                          transform: "translate(0, 0)",
                         }}
                       />
                     </a>
@@ -424,18 +426,18 @@ export default function Tasks() {
       <div className="mt-6 flex w-full items-center justify-center gap-4">
         <button
           disabled={page <= 0}
-          className="px-4 py-2 disabled:opacity-50"
+          className="hover:cursor-pointer disabled:cursor-default disabled:opacity-10"
           onClick={() => navigatePage("back")}
         >
-          <BackwardIcon className="h-10 w-10 fill-red-500 text-red-400 hover:cursor-pointer" />
+          <BackwardIcon className="h-10 w-10 fill-gray-600 text-gray-900 hover:fill-red-400" />
         </button>
         <span className="text-sm">Page {page + 1}</span>
         <button
           disabled={taskCount - (page + 1) * selectedPageCount <= 0}
-          className="px-4 py-2 disabled:opacity-50"
+          className="hover:cursor-pointer disabled:cursor-default disabled:opacity-10"
           onClick={() => navigatePage("next")}
         >
-          <ForwardIcon className="h-10 w-10 fill-green-500 text-green-400 hover:cursor-pointer" />
+          <ForwardIcon className="h-10 w-10 fill-gray-600 text-gray-900 hover:fill-green-400" />
         </button>
       </div>
       <TaskModal
