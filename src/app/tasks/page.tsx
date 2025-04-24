@@ -409,7 +409,7 @@ export default function Tasks() {
                       />
                     </div>
                     <p
-                      className="absolute top-0 right-0 left-0 bg-black/75 p-2 text-center text-xs text-white md:text-base"
+                      className="absolute top-0 right-0 left-0 bg-black/75 p-1 text-center text-xs text-white md:p-2 md:text-base"
                       style={{}}
                     >
                       {floorplan?.description} - {floorplan?.name}
