@@ -1,12 +1,11 @@
 "use client";
 
 import CustomDropdown from "@/components/CustomDropdown";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowTurnDownRightIcon, MapPinIcon } from "@heroicons/react/16/solid";
 import { BackwardIcon } from "@heroicons/react/24/outline";
 import { ForwardIcon } from "@heroicons/react/24/outline";
 import TaskModal from "@/components/TaskModal";
-import Image from "next/image";
 interface Project {
   id: string;
   name: string;
@@ -91,6 +90,9 @@ export default function Tasks() {
   const [selectedPageCount, setSelectedPageCount] = useState<number>(10);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
   const fetchProjects = async () => {
     try {
       const url = `/api/projects`;
@@ -205,6 +207,26 @@ export default function Tasks() {
       fetchTasks(selectedProject);
     }
   }, [selectedProject]);
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        console.log(width, height);
+        setDimensions({ width, height });
+      }
+    });
+
+    const el = containerRef.current;
+    if (el) {
+      resizeObserver.observe(el);
+    }
+
+    return () => {
+      if (el) {
+        resizeObserver.unobserve(el);
+      }
+    };
+  }, [tasks]);
   return (
     <div className="w-[calc(100vw-17px)] p-5">
       {/* Dropdowns in a row */}
@@ -288,15 +310,18 @@ export default function Tasks() {
             );
             const status = statuses.find((st) => st.id === task.status_id);
 
-            const imageHeight = floorplan ? floorplan.sheets[0].file_height : 0;
-            const imageWidth = floorplan ? floorplan.sheets[0].file_width : 0;
-            const percentX = floorplan ? (task.pos_x / imageWidth) * 100 : 0;
-            const percentY = floorplan ? (task.pos_y / imageHeight) * 100 : 0;
+            const scale = 0.6;
+            const imgTargetX = task.pos_x;
+            const imgTargetY = task.pos_y;
+            const containerTargetX = dimensions.width / 2;
+            const containerTargetY = dimensions.height / 2;
+            const offsetX = containerTargetX - imgTargetX * scale;
+            const offsetY = containerTargetY - imgTargetY * scale;
 
             return (
               <div
                 key={task.id}
-                className="flex w-full flex-col justify-between rounded-sm bg-gray-100 p-4"
+                className="relative flex w-full flex-col justify-between rounded-sm bg-gray-100 p-4"
                 // style={{
                 //   boxShadow: `${status?.color}66 -5px 5px,
                 //               ${status?.color}4D -10px 10px,
@@ -307,7 +332,7 @@ export default function Tasks() {
               >
                 <div className="flex items-start justify-between border-b-2 border-gray-200">
                   <div>
-                    <h1 className="text-gray-600 md:text-2xl">
+                    <h1 className="text-sm text-gray-600 md:text-2xl">
                       <button
                         className="underline-offset-5 hover:cursor-pointer hover:text-gray-900 hover:underline"
                         onClick={() => {
@@ -323,19 +348,23 @@ export default function Tasks() {
                         <ArrowTurnDownRightIcon className="h-5 w-5" />
                       </button>
                     </h1>
-                    <p
-                      className="pt-1 pr-2 pb-1 text-sm font-bold"
-                      style={{
-                        color: status?.color,
-                      }}
-                    >
-                      {status?.name}
-                    </p>
+                    <div className="flex justify-between pt-1 pr-2 pb-1">
+                      <p
+                        className="text-xs font-bold sm:text-sm"
+                        style={{
+                          color: status?.color,
+                        }}
+                      >
+                        {status?.name}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-600">{task.modified_at}</p>
+                  <p className="absolute right-6 bottom-2 text-[8px] text-gray-500 italic sm:top-2 sm:text-xs md:text-sm xl:text-base">
+                    {task.modified_at}
+                  </p>
                 </div>
 
-                <div className="m-2 grid grid-cols-6">
+                <div className="m-2 grid grid-cols-6 grid-rows-2">
                   {(() => {
                     const imageBubbles = task.bubbles.filter(
                       (b) => b.kind === 10 || b.kind === 11 || b.kind === 13,
@@ -364,43 +393,45 @@ export default function Tasks() {
                         <img
                           src={bubble.thumb_url}
                           alt="Bubble"
-                          className="h-full w-full object-cover py-1 pr-1"
+                          className="h-full w-full object-cover py-1 pr-2"
                         />
                       </a>
                     ));
                   })()}
 
-                  <div className="relative col-start-4 col-end-7 row-start-1 row-end-3 flex h-full w-full flex-col overflow-hidden rounded-sm ring-1 ring-gray-300">
+                  <div
+                    ref={containerRef}
+                    className="relative col-start-4 col-end-7 row-start-1 row-end-3 flex h-full w-full flex-col overflow-hidden rounded-sm ring-1 ring-gray-300"
+                  >
                     <a
                       className=""
                       href={floorplan?.sheets[0].file_url}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <Image
-                        className="h-full w-full scale-400"
+                      <img
+                        className="absolute top-0 left-0 max-h-none max-w-none"
                         alt="floorplan"
                         src={
                           floorplan?.sheets[0].file_url ||
                           "/Image-not-found.png"
                         }
-                        width={2000}
-                        height={2000}
                         style={{
-                          transformOrigin: `${percentX}% ${percentY}%`,
-                          transform: "translate(0, 0)",
+                          transformOrigin: `top left`,
+                          transform: `scale(${scale}) translate(${offsetX / scale}px, ${offsetY / scale}px)`,
+                          objectFit: "cover",
                         }}
-                      />
+                      ></img>
                     </a>
                     <div
-                      className="absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
+                      className="pointer-events-none absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
                       style={{
-                        top: `${percentY}%`,
-                        left: `${percentX}%`,
+                        top: `50%`,
+                        left: `50%`,
                       }}
                     >
                       <MapPinIcon
-                        className="h-full w-full translate-y-[-10px]"
+                        className="pointer-events-none h-full w-full translate-y-[-10px]"
                         style={{
                           color: `${status ? status.color : "#000000"}`,
                           fill: `${status ? status.color : "#FFFFFF"}CC`,
@@ -408,12 +439,14 @@ export default function Tasks() {
                         }}
                       />
                     </div>
-                    <p
-                      className="absolute top-0 right-0 left-0 bg-black/75 p-1 text-center text-xs text-white md:p-2 md:text-base"
-                      style={{}}
-                    >
-                      {floorplan?.description} - {floorplan?.name}
-                    </p>
+                    <div className="absolute top-0 right-0 left-0 hidden bg-black/75 p-1 text-center sm:block md:p-2">
+                      <p
+                        className="text-xs text-white md:text-sm xl:text-base 2xl:text-lg"
+                        style={{}}
+                      >
+                        {floorplan?.description} - {floorplan?.name}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
