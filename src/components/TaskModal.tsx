@@ -188,7 +188,8 @@ export default function TaskModal({
                     color: `${statuses.find((status) => status.name === message.content.replace("Changed status to ", ""))?.color || "black"}`,
                   }}
                 >
-                  {message.content.replace("Changed status to", "→")}
+                  {message.content.replace("Changed status to", "→")}{" "}
+                  {message.formatted_created_at.slice(0, 8)}
                 </p>
               ))}
           </div>

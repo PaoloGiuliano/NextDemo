@@ -144,7 +144,6 @@ export default function Tasks() {
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
-        console.log(width, height);
         setDimensions({ width, height });
       }
     });
@@ -305,9 +304,14 @@ export default function Tasks() {
 
                     if (imageBubbles.length === 0) {
                       return (
-                        <p className="text-sm text-gray-500 italic">
-                          No images
-                        </p>
+                        <div
+                          className=""
+                          style={{ height: `${dimensions.height / 2}px` }}
+                        >
+                          <p className="text-sm text-gray-500 italic">
+                            No images
+                          </p>
+                        </div>
                       );
                     }
                     return imageBubbles.slice(-6).map((bubble) => (
@@ -334,7 +338,7 @@ export default function Tasks() {
                   <div className="col-start-3 col-end-7 row-start-1 row-end-4 flex flex-col sm:col-start-4 sm:row-end-3">
                     <div
                       ref={containerRef}
-                      className="relative h-full w-full overflow-hidden rounded ring-gray-300 sm:rounded-sm sm:ring-1"
+                      className="relative h-full w-full overflow-hidden rounded bg-white ring-gray-300 sm:rounded-sm sm:ring-1"
                     >
                       <a
                         className=""
