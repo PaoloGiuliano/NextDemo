@@ -1,61 +1,8 @@
 "use client";
+import { Floorplan, Task, Status } from "../app/lib/types";
 import { useEffect, useRef } from "react";
 import { MapPinIcon } from "@heroicons/react/16/solid";
-interface Status {
-  id: string;
-  name: string;
-  color: string;
-}
-interface Task {
-  id: string;
-  name: string;
-  modified_at: string;
-  project_id: string;
-  status_id: string;
-  floorplan_id: string;
-  pos_x: number;
-  pos_y: number;
-  bubbles: Bubble[];
-}
-interface Bubble {
-  id: string;
-  updated_at: string;
-  created_at: string;
-  formatted_created_at: string;
-  content: string;
-  kind: number;
-  task_id: string;
-  project_id: string;
-  file_size: number;
-  file_url: string;
-  thumb_url: string;
-  original_url: string;
-  flattened_file_url: string;
-}
 
-interface Floorplan {
-  id: string;
-  name: string;
-  description: string;
-  updated_at: string;
-  project_id: string;
-  sheets: Sheet[];
-}
-interface Sheet {
-  id: string;
-  name: string;
-  updated_at: string;
-  project_id: string;
-  floorplan_id: string;
-  file_name: string;
-  file_url: string;
-  thumb_url: string;
-  original_url: string;
-  original_height: number;
-  original_width: number;
-  file_height: number;
-  file_width: number;
-}
 type TaskModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -145,7 +92,7 @@ export default function TaskModal({
               <img
                 src={floorplan ? floorplan?.sheets[0].file_url : ""}
                 alt="floorplan"
-                className="absolute h-full w-full rounded hover:ring-2 hover:ring-gray-400"
+                className="absolute h-full w-full hover:ring-2 hover:ring-gray-400"
               />
               <div
                 className="absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
@@ -216,13 +163,17 @@ export default function TaskModal({
           <div className="bg-gray-100 md:col-span-2 md:row-span-6 lg:col-span-3 lg:row-span-5 xl:row-span-4 2xl:row-span-4">
             Information/Statistics
           </div>
-          <div className="bg-gray-100 md:col-span-2 md:row-span-6 lg:col-span-1 lg:row-span-5 xl:row-span-4 2xl:row-span-4">
-            Status Changes
+          <div className="overflow-y-auto bg-gray-100 md:col-span-2 md:row-span-6 lg:col-span-1 lg:row-span-5 xl:row-span-4 2xl:row-span-4">
+            <h1 className="text-center underline">Status Changes</h1>
             {task?.bubbles
               .filter((bubble) =>
                 bubble.content ? bubble.content.includes("Changed status") : "",
               )
-              .map((message) => <div key={message.id}>{message.content}</div>)}
+              .map((message) => (
+                <p className="pl-2 text-sm" key={message.id}>
+                  {message.content.replace("Changed status to", "")}
+                </p>
+              ))}
           </div>
         </div>
       </div>

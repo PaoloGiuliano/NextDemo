@@ -1,78 +1,11 @@
 "use client";
-
+import { Project, Task, Status, Floorplan } from "../lib/types";
 import CustomDropdown from "@/components/CustomDropdown";
 import { useEffect, useRef, useState } from "react";
 import { ArrowTurnDownRightIcon, MapPinIcon } from "@heroicons/react/16/solid";
 import { BackwardIcon } from "@heroicons/react/24/outline";
 import { ForwardIcon } from "@heroicons/react/24/outline";
 import TaskModal from "@/components/TaskModal";
-interface Project {
-  id: string;
-  name: string;
-}
-interface Floorplan {
-  id: string;
-  name: string;
-  description: string;
-  updated_at: string;
-  project_id: string;
-  sheets: Sheet[];
-}
-interface Sheet {
-  id: string;
-  name: string;
-  updated_at: string;
-  project_id: string;
-  floorplan_id: string;
-  file_name: string;
-  file_url: string;
-  thumb_url: string;
-  original_url: string;
-  original_height: number;
-  original_width: number;
-  file_height: number;
-  file_width: number;
-}
-interface Status {
-  id: string;
-  name: string;
-  color: string;
-}
-interface Task {
-  id: string;
-  name: string;
-  modified_at: string;
-  project_id: string;
-  status_id: string;
-  floorplan_id: string;
-  pos_x: number;
-  pos_y: number;
-  bubbles: Bubble[];
-}
-interface Bubble {
-  id: string;
-  updated_at: string;
-  created_at: string;
-  formatted_created_at: string;
-  content: string;
-  kind: number;
-  task_id: string;
-  project_id: string;
-  file_size: number;
-  file_url: string;
-  thumb_url: string;
-  original_url: string;
-  flattened_file_url: string;
-}
-// function getContrastTextColor(hex: string): "black" | "white" {
-//   const color = hex.replace("#", "").padEnd(6, "0");
-//   const r = parseInt(color.slice(0, 2), 16);
-//   const g = parseInt(color.slice(2, 4), 16);
-//   const b = parseInt(color.slice(4, 6), 16);
-
-//   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-//   return luminance > 0.5 ? "black" : "white";
-// }
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
