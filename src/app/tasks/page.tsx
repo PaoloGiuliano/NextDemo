@@ -161,7 +161,7 @@ export default function Tasks() {
     };
   }, [tasks]);
   return (
-    <div className="w-[calc(100vw-17px)] overflow-x-hidden p-5">
+    <div className="w-[calc(100vw-17px)] p-5">
       {/* Dropdowns in a row */}
       <div className="xl:item-center xs:grid xs:grid-cols-2 flex-col gap-4 lg:flex lg:flex-row lg:items-center xl:flex xl:flex-row">
         <CustomDropdown
