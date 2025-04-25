@@ -9,6 +9,7 @@ type TaskModalProps = {
   task: Task | null;
   status: Status | null;
   floorplan: Floorplan | null;
+  statuses: Status[];
 };
 function getContrastTextColor(hex: string): "black" | "white" {
   const color = hex.replace("#", "").padEnd(6, "0");
@@ -25,8 +26,10 @@ export default function TaskModal({
   task,
   status,
   floorplan,
+  statuses,
 }: TaskModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  //close modal if mouse click outside of it
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (e.button !== 0) return;
@@ -39,6 +42,7 @@ export default function TaskModal({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   });
+  //close modal if Escape key pressed
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -46,13 +50,16 @@ export default function TaskModal({
     document.addEventListener("keydown", handleEsc);
     return () => document.removeEventListener("keydown", handleEsc);
   }, [onClose]);
+
   if (!isOpen) return null;
+
   const imageHeight = floorplan ? floorplan.sheets[0].file_height : 0;
   const imageWidth = floorplan ? floorplan.sheets[0].file_width : 0;
   const percentX = floorplan ? ((task ? task.pos_x : 0) / imageWidth) * 100 : 0;
   const percentY = floorplan
     ? ((task ? task.pos_y : 0) / imageHeight) * 100
     : 0;
+
   return (
     <div className="fixed inset-0 z-50 flex h-full flex-col items-center justify-center bg-black/50">
       <div
@@ -92,7 +99,7 @@ export default function TaskModal({
               <img
                 src={floorplan ? floorplan?.sheets[0].file_url : ""}
                 alt="floorplan"
-                className="absolute h-full w-full hover:ring-2 hover:ring-gray-400"
+                className="absolute h-full w-full"
               />
               <div
                 className="absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
@@ -160,18 +167,28 @@ export default function TaskModal({
             ))}
           </div>
 
-          <div className="bg-gray-100 md:col-span-2 md:row-span-6 lg:col-span-3 lg:row-span-5 xl:row-span-4 2xl:row-span-4">
-            Information/Statistics
+          <div className="overflow-y-auto bg-gray-100 md:col-span-2 md:row-span-6 lg:row-span-5 xl:row-span-4 2xl:col-span-3 2xl:row-span-4">
+            <h1 className="text-center text-sm underline xl:text-lg">
+              Attributes
+            </h1>
           </div>
-          <div className="overflow-y-auto bg-gray-100 md:col-span-2 md:row-span-6 lg:col-span-1 lg:row-span-5 xl:row-span-4 2xl:row-span-4">
-            <h1 className="text-center underline">Status Changes</h1>
+          <div className="overflow-y-auto bg-gray-100 md:col-span-2 md:row-span-6 lg:row-span-5 xl:row-span-4 2xl:col-span-1 2xl:row-span-4">
+            <h1 className="text-center text-sm underline xl:text-lg">
+              Status Changes
+            </h1>
             {task?.bubbles
               .filter((bubble) =>
                 bubble.content ? bubble.content.includes("Changed status") : "",
               )
               .map((message) => (
-                <p className="pl-2 text-sm" key={message.id}>
-                  {message.content.replace("Changed status to", "")}
+                <p
+                  className="pl-2 text-sm"
+                  key={message.id}
+                  style={{
+                    color: `${statuses.find((status) => status.name === message.content.replace("Changed status to ", ""))?.color || "black"}`,
+                  }}
+                >
+                  {message.content.replace("Changed status to", "→")}
                 </p>
               ))}
           </div>
