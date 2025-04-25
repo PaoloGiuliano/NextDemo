@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef } from "react";
-import Image from "next/image";
 import { MapPinIcon } from "@heroicons/react/16/solid";
 interface Status {
   id: string;
@@ -143,11 +142,10 @@ export default function TaskModal({
               rel="noopener noreferrer"
               target="_blank"
             >
-              <Image
+              <img
                 src={floorplan ? floorplan?.sheets[0].file_url : ""}
                 alt="floorplan"
-                fill
-                className="absolute rounded hover:ring-2 hover:ring-gray-400"
+                className="absolute h-full w-full rounded hover:ring-2 hover:ring-gray-400"
               />
               <div
                 className="absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
@@ -185,11 +183,10 @@ export default function TaskModal({
                           rel="noopener noreferrer"
                         >
                           <div className="h-30 w-30 sm:h-40 sm:w-40 md:h-40 md:w-40 lg:h-50 lg:w-50 xl:h-70 xl:w-70">
-                            <Image
+                            <img
                               className="block"
                               src={bubble.thumb_url}
                               alt="fw_image"
-                              fill
                             />
                           </div>
                           <p className="absolute top-0 right-0 hidden rounded-bl bg-black/50 p-1 text-white group-hover:block">
@@ -216,11 +213,16 @@ export default function TaskModal({
             ))}
           </div>
 
-          <div className="col-span-2 bg-gray-100 md:row-span-6 lg:row-span-5 xl:row-span-4 2xl:row-span-4">
+          <div className="bg-gray-100 md:col-span-2 md:row-span-6 lg:col-span-3 lg:row-span-5 xl:row-span-4 2xl:row-span-4">
             Information/Statistics
           </div>
-          <div className="col-span-2 bg-gray-100 md:row-span-6 lg:row-span-5 xl:row-span-4 2xl:row-span-4">
+          <div className="bg-gray-100 md:col-span-2 md:row-span-6 lg:col-span-1 lg:row-span-5 xl:row-span-4 2xl:row-span-4">
             Status Changes
+            {task?.bubbles
+              .filter((bubble) =>
+                bubble.content ? bubble.content.includes("Changed status") : "",
+              )
+              .map((message) => <div key={message.id}>{message.content}</div>)}
           </div>
         </div>
       </div>

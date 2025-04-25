@@ -364,7 +364,7 @@ export default function Tasks() {
                   </p>
                 </div>
 
-                <div className="m-2 grid grid-cols-6 grid-rows-2">
+                <div className="m-2 grid grid-cols-6 grid-rows-3 sm:grid-rows-2">
                   {(() => {
                     const imageBubbles = task.bubbles.filter(
                       (b) => b.kind === 10 || b.kind === 11 || b.kind === 13,
@@ -398,54 +398,55 @@ export default function Tasks() {
                       </a>
                     ));
                   })()}
-
-                  <div
-                    ref={containerRef}
-                    className="relative col-start-4 col-end-7 row-start-1 row-end-3 flex h-full w-full flex-col overflow-hidden rounded-sm ring-1 ring-gray-300"
-                  >
-                    <a
-                      className=""
-                      href={floorplan?.sheets[0].file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <img
-                        className="absolute top-0 left-0 max-h-none max-w-none"
-                        alt="floorplan"
-                        src={
-                          floorplan?.sheets[0].file_url ||
-                          "/Image-not-found.png"
-                        }
-                        style={{
-                          transformOrigin: `top left`,
-                          transform: `scale(${scale}) translate(${offsetX / scale}px, ${offsetY / scale}px)`,
-                          objectFit: "cover",
-                        }}
-                      ></img>
-                    </a>
+                  <div className="col-start-3 col-end-7 row-start-1 row-end-4 flex flex-col sm:col-start-4 sm:row-end-3">
                     <div
-                      className="pointer-events-none absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
-                      style={{
-                        top: `50%`,
-                        left: `50%`,
-                      }}
+                      ref={containerRef}
+                      className="relative h-full w-full overflow-hidden rounded ring-gray-300 sm:rounded-sm sm:ring-1"
                     >
-                      <MapPinIcon
-                        className="pointer-events-none h-full w-full translate-y-[-10px]"
-                        style={{
-                          color: `${status ? status.color : "#000000"}`,
-                          fill: `${status ? status.color : "#FFFFFF"}CC`,
-                          stroke: "#000000",
-                        }}
-                      />
-                    </div>
-                    <div className="absolute top-0 right-0 left-0 hidden bg-black/75 p-1 text-center sm:block md:p-2">
-                      <p
-                        className="text-xs text-white md:text-sm xl:text-base 2xl:text-lg"
-                        style={{}}
+                      <a
+                        className=""
+                        href={floorplan?.sheets[0].file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
-                        {floorplan?.description} - {floorplan?.name}
-                      </p>
+                        <img
+                          className="absolute top-0 left-0 max-h-none max-w-none"
+                          alt="floorplan"
+                          src={
+                            floorplan?.sheets[0].file_url ||
+                            "/Image-not-found.png"
+                          }
+                          style={{
+                            transformOrigin: `top left`,
+                            transform: `scale(${scale}) translate(${offsetX / scale}px, ${offsetY / scale}px)`,
+                            objectFit: "cover",
+                          }}
+                        />
+                      </a>
+                      <div
+                        className="pointer-events-none absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
+                        style={{
+                          top: `50%`,
+                          left: `50%`,
+                        }}
+                      >
+                        <MapPinIcon
+                          className="pointer-events-none h-full w-full translate-y-[-10px]"
+                          style={{
+                            color: `${status ? status.color : "#000000"}`,
+                            fill: `${status ? status.color : "#FFFFFF"}CC`,
+                            stroke: "#000000",
+                          }}
+                        />
+                      </div>
+                      <div className="absolute top-0 right-0 left-0 bg-black/75 p-1 text-center md:p-2">
+                        <p
+                          className="text-xs text-white md:text-sm xl:text-base 2xl:text-lg"
+                          style={{}}
+                        >
+                          {floorplan?.description} - {floorplan?.name}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
