@@ -52,9 +52,16 @@ export async function GET(
 
   const client = await pool.connect();
   try {
-    let query = `SELECT id, name, status_id, project_id, floorplan_id, TO_CHAR(latest_component_device_updated_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH12:MI:SS AM') AS modified_at, pos_x, pos_y 
-       FROM tasks 
-       WHERE project_id = $1`;
+    let query = `SELECT 
+                 tasks.*, 
+                 TO_CHAR(bubble_updates.latest_bubble_update AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH12:MI:SS AM') AS modified_at
+                 FROM tasks
+                 JOIN (
+                 SELECT task_id, MAX(updated_at) AS latest_bubble_update
+                 FROM bubbles
+                 GROUP BY task_id
+                 ) AS bubble_updates ON tasks.id = bubble_updates.task_id
+                 WHERE project_id = $1`;
     let taskCountQuery = `SELECT count(id) FROM tasks WHERE project_id = $1`;
 
     const params: any[] = [project_id];
@@ -75,7 +82,7 @@ export async function GET(
       countParams.push(floorplan_id);
     }
 
-    query += ` ORDER BY latest_component_device_updated_at DESC LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
+    query += ` ORDER BY bubble_updates.latest_bubble_update DESC LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
     params.push(pageCount, page * pageCount);
 
     const tasksResults = await client.query(query, params);
