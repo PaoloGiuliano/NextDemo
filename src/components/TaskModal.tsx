@@ -2,7 +2,6 @@
 import { Floorplan, Task, Status } from "../app/lib/types";
 import { useEffect, useRef, useState } from "react";
 import { MapPinIcon } from "@heroicons/react/16/solid";
-import { dirname } from "path";
 
 type TaskModalProps = {
   isOpen: boolean;
