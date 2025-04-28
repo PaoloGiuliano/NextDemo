@@ -291,7 +291,7 @@ export default function Tasks() {
                       </p>
                     </div>
                   </div>
-                  <p className="absolute right-6 bottom-2 text-[8px] text-gray-500 italic sm:top-2 sm:text-xs md:text-sm xl:text-base">
+                  <p className="absolute right-6 bottom-2 text-[8px] text-gray-500 italic sm:top-2 sm:text-xs md:text-sm">
                     {task.modified_at}
                   </p>
                 </div>
