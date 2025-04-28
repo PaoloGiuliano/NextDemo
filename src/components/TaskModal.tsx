@@ -1,7 +1,8 @@
 "use client";
 import { Floorplan, Task, Status } from "../app/lib/types";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapPinIcon } from "@heroicons/react/16/solid";
+import { dirname } from "path";
 
 type TaskModalProps = {
   isOpen: boolean;
@@ -29,6 +30,17 @@ export default function TaskModal({
   statuses,
 }: TaskModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const imageDivRef = useRef<HTMLDivElement | null>(null);
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
+  const [imageDivDimensions, setImageDivDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
+
   //close modal if mouse click outside of it
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -42,6 +54,45 @@ export default function TaskModal({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   });
+  useEffect(() => {
+    const divObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        setImageDivDimensions({ width, height });
+      }
+    });
+
+    const divEl = imageDivRef.current;
+    if (divEl) {
+      divObserver.observe(divEl);
+    }
+
+    return () => {
+      if (divEl) {
+        divObserver.unobserve(divEl);
+      }
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    const imgObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        setImageDimensions({ width, height });
+      }
+    });
+
+    const imgEl = imageRef.current;
+    if (imgEl) {
+      imgObserver.observe(imgEl);
+    }
+
+    return () => {
+      if (imgEl) {
+        imgObserver.unobserve(imgEl);
+      }
+    };
+  }, [isOpen]);
   //close modal if Escape key pressed
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -55,11 +106,11 @@ export default function TaskModal({
 
   const imageHeight = floorplan ? floorplan.sheets[0].file_height : 0;
   const imageWidth = floorplan ? floorplan.sheets[0].file_width : 0;
-  const percentX = floorplan ? ((task ? task.pos_x : 0) / imageWidth) * 100 : 0;
-  const percentY = floorplan
-    ? ((task ? task.pos_y : 0) / imageHeight) * 100
-    : 0;
-
+  const posX = task?.pos_x || 0;
+  const posY = task?.pos_y || 0;
+  const a = (posX / imageWidth) * imageDimensions.width; // Height of the coords
+  const b = (posY / imageHeight) * imageDimensions.height; // Width of the coords
+  const c = (imageDivDimensions.width - imageDimensions.width) / 2; // Offset due to object-contain
   return (
     <div className="fixed inset-0 z-50 flex h-full flex-col items-center justify-center bg-black/50">
       <div
@@ -89,7 +140,10 @@ export default function TaskModal({
               {task?.name}
             </p>
           </div>
-          <div className="relative col-span-4 aspect-video h-auto w-full bg-gray-100 sm:row-span-1 md:row-span-2 md:aspect-auto md:h-full md:w-auto lg:row-span-3 xl:row-span-4 2xl:row-span-4">
+          <div
+            ref={imageDivRef}
+            className="relative col-span-4 flex aspect-video h-auto w-full justify-center sm:row-span-1 md:row-span-2 md:aspect-auto md:h-full md:w-auto lg:row-span-3 xl:row-span-4 2xl:row-span-4"
+          >
             <a
               className="hover:cursor-pointer"
               href={floorplan ? floorplan?.sheets[0].original_url : ""}
@@ -97,27 +151,29 @@ export default function TaskModal({
               target="_blank"
             >
               <img
+                ref={imageRef}
                 src={floorplan ? floorplan?.sheets[0].file_url : ""}
                 alt="floorplan"
-                className="absolute h-full w-full"
+                className="h-full object-contain"
               />
-              <div
-                className="absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
-                style={{
-                  top: `${percentY}%`,
-                  left: `${percentX}%`,
-                }}
-              >
-                <MapPinIcon
-                  className="translate-y-[-15px]"
-                  style={{
-                    color: `${status ? status.color : "#000000"}`,
-                    fill: `${status ? status.color : "#FFFFFF"}CC`,
-                    stroke: "#000000",
-                  }}
-                />
-              </div>
             </a>
+            <div
+              className="absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
+              style={{
+                transformOrigin: "top left",
+                top: `${b}px`,
+                left: `${a + c}px`,
+              }}
+            >
+              <MapPinIcon
+                className="translate-y-[-15px]"
+                style={{
+                  color: `${status ? status.color : "#000000"}`,
+                  fill: `${status ? status.color : "#FFFFFF"}CC`,
+                  stroke: "#000000",
+                }}
+              />
+            </div>
           </div>
           <div className="col-span-4 row-span-6 overflow-auto bg-gray-100 lg:row-span-7">
             {task?.bubbles.map((bubble) => (
