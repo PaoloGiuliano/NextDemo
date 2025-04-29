@@ -110,6 +110,8 @@ export default function TaskModal({
   const a = (posX / imageWidth) * imageDimensions.width; // Height of the coords
   const b = (posY / imageHeight) * imageDimensions.height; // Width of the coords
   const c = (imageDivDimensions.width - imageDimensions.width) / 2; // Offset due to object-contain
+  const d = (imageDivDimensions.height - imageDimensions.height) / 2; // Offset due to object-contain
+
   return (
     <div className="fixed inset-0 z-50 flex h-full flex-col items-center justify-center bg-black/50">
       <div
@@ -160,7 +162,7 @@ export default function TaskModal({
               className="absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
               style={{
                 transformOrigin: "top left",
-                top: `${b}px`,
+                top: `${b + d}px`,
                 left: `${a + c}px`,
               }}
             >
