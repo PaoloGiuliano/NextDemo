@@ -155,7 +155,7 @@ export default function TaskModal({
                 ref={imageRef}
                 src={floorplan ? floorplan?.sheets[0].file_url : ""}
                 alt="floorplan"
-                className="object-contain"
+                className="max-h-full object-contain"
               />
             </a>
             <div
