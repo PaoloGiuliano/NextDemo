@@ -43,6 +43,7 @@ export async function GET(
     req.nextUrl.searchParams.get("page_count") || "10",
     10,
   );
+  const sortDirection = req.nextUrl.searchParams.get("sort_directions");
 
   if (secret !== process.env.INTERNAL_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -82,7 +83,7 @@ export async function GET(
       countParams.push(floorplan_id);
     }
 
-    query += ` ORDER BY bubble_updates.latest_bubble_update DESC LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
+    query += ` ORDER BY bubble_updates.latest_bubble_update ${sortDirection} LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
     params.push(pageCount, page * pageCount);
 
     const tasksResults = await client.query(query, params);

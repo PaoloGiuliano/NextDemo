@@ -25,6 +25,7 @@ export default function Tasks() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [sortDirection, setSortDirection] = useState("DESC");
 
   const fetchProjects = async () => {
     try {
@@ -95,7 +96,7 @@ export default function Tasks() {
         project ? project.id : ""
       }&status_id=${selectedStatus ? selectedStatus.id : ""}&floorplan_id=${
         selectedFloorplan ? selectedFloorplan.id : ""
-      }&page=${page ? page : 0}&page_count=${selectedPageCount}`;
+      }&page=${page ? page : 0}&page_count=${selectedPageCount}&sort_directions=${sortDirection}`;
       const response = await fetch(url, {
         method: "GET",
         headers,
@@ -191,6 +192,18 @@ export default function Tasks() {
           placeholder="Tasks per page..."
           title="Tasks per page"
         />
+        <div>
+          <p>Sort Order</p>
+          <button
+            className="rounded border border-gray-300 bg-white px-4 py-2 text-left hover:cursor-pointer"
+            onClick={() => {
+              setSortDirection(sortDirection === "DESC" ? "ASC" : "DESC");
+              fetchTasks(selectedProject);
+            }}
+          >
+            {sortDirection === "ASC" ? "DESC ▼" : "ASC ▲"}
+          </button>
+        </div>
       </div>
 
       {/* Pills */}
