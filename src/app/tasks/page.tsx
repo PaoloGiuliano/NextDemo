@@ -400,41 +400,41 @@ export default function Tasks() {
                       </div>
                       <div className="absolute top-0 right-0 left-0 bg-black/75 p-1 text-left md:p-2">
                         <p
-                          className="text-xs text-white md:text-sm xl:text-base 2xl:text-lg"
+                          className="text-center text-xs text-white md:text-sm xl:text-base 2xl:text-lg"
                           style={{}}
                         >
                           {floorplan?.description} - {floorplan?.name}
                         </p>
-                        <div className="absolute top-0 right-0 left-0 flex justify-end space-x-2 p-1 md:p-2">
-                          <button
-                            className="hover:cursor-pointer disabled:cursor-default disabled:opacity-50"
-                            onClick={() => setScale(scale - 0.1)}
-                            disabled={scale <= 0.3}
-                          >
-                            <MagnifyingGlassMinusIcon
-                              className="h-4 md:h-5 lg:h-6"
-                              style={{ color: "white" }}
-                            />
-                          </button>
-                          <button
-                            className="hover:cursor-pointer disabled:cursor-default disabled:opacity-50"
-                            onClick={() => setScale(scale + 0.1)}
-                            disabled={scale >= 5}
-                          >
-                            <MagnifyingGlassPlusIcon
-                              className="h-4 md:h-5 lg:h-6"
-                              style={{ color: "white" }}
-                            />
-                          </button>
-                        </div>
                       </div>
-                      <button
-                        disabled={scale == 0.7}
-                        className="absolute right-0 bottom-0 m-1 rounded bg-red-900/90 px-1 text-xs text-white hover:cursor-pointer disabled:z-[-20] disabled:opacity-0 md:text-base"
-                        onClick={() => setScale(0.7)}
-                      >
-                        reset zoom
-                      </button>
+                      <div className="absolute right-0 bottom-0 flex justify-end space-x-2 rounded-tl bg-black/80 p-1 md:p-2">
+                        <button
+                          hidden={scale == 0.7}
+                          className="rounded border border-white bg-red-900/90 px-1 text-xs text-white hover:cursor-pointer disabled:z-[-20] disabled:opacity-0 md:text-base"
+                          onClick={() => setScale(0.7)}
+                        >
+                          reset zoom
+                        </button>
+                        <button
+                          className="hover:cursor-pointer disabled:cursor-default disabled:opacity-50"
+                          onClick={() => setScale(scale - 0.1)}
+                          disabled={scale <= 0.3}
+                        >
+                          <MagnifyingGlassMinusIcon
+                            className="h-4 md:h-5 lg:h-6"
+                            style={{ color: "white" }}
+                          />
+                        </button>
+                        <button
+                          className="hover:cursor-pointer disabled:cursor-default disabled:opacity-50"
+                          onClick={() => setScale(scale + 0.1)}
+                          disabled={scale >= 5}
+                        >
+                          <MagnifyingGlassPlusIcon
+                            className="h-4 md:h-5 lg:h-6"
+                            style={{ color: "white" }}
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
