@@ -130,7 +130,13 @@ export default function Tasks() {
 
   useEffect(() => {
     if (selectedProject) fetchTasks(selectedProject);
-  }, [page, selectedPageCount, selectedStatus, selectedFloorplan]);
+  }, [
+    page,
+    selectedPageCount,
+    selectedStatus,
+    selectedFloorplan,
+    sortDirection,
+  ]);
   // Waiting for selectedProject to exist before fetching Floorplans
   useEffect(() => {
     if (selectedProject) {
@@ -197,11 +203,10 @@ export default function Tasks() {
           <button
             className="rounded border border-gray-300 bg-white px-4 py-2 text-left hover:cursor-pointer"
             onClick={() => {
-              setSortDirection(sortDirection === "DESC" ? "ASC" : "DESC");
-              fetchTasks(selectedProject);
+              setSortDirection(sortDirection === "ASC" ? "DESC" : "ASC");
             }}
           >
-            {sortDirection === "ASC" ? "DESC ▼" : "ASC ▲"}
+            {sortDirection === "DESC" ? "DESC ▼" : "ASC ▲"}
           </button>
         </div>
       </div>
