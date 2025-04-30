@@ -407,14 +407,6 @@ export default function Tasks() {
                         </p>
                         <div className="absolute top-0 right-0 left-0 flex justify-end space-x-2 p-1 md:p-2">
                           <button
-                            disabled={scale == 0.7}
-                            hidden={true}
-                            className="rounded border border-gray-100 px-1 text-white disabled:opacity-0"
-                            onClick={() => setScale(0.7)}
-                          >
-                            reset
-                          </button>
-                          <button
                             className="hover:cursor-pointer disabled:cursor-default disabled:opacity-50"
                             onClick={() => setScale(scale - 0.1)}
                             disabled={scale <= 0.3}
@@ -436,6 +428,13 @@ export default function Tasks() {
                           </button>
                         </div>
                       </div>
+                      <button
+                        disabled={scale == 0.7}
+                        className="absolute right-0 bottom-0 m-1 rounded bg-red-900/90 px-1 text-xs text-white hover:cursor-pointer disabled:z-[-20] disabled:opacity-0 md:text-base"
+                        onClick={() => setScale(0.7)}
+                      >
+                        reset zoom
+                      </button>
                     </div>
                   </div>
                 </div>
