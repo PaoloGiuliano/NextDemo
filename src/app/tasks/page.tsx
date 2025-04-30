@@ -413,7 +413,7 @@ export default function Tasks() {
                           disabled={scale <= 0.3}
                         >
                           <MagnifyingGlassMinusIcon
-                            className="h-4 md:h-5 lg:h-6"
+                            className="h-5 lg:h-6"
                             style={{ color: "white" }}
                           />
                         </button>
@@ -423,7 +423,7 @@ export default function Tasks() {
                           disabled={scale >= 5}
                         >
                           <MagnifyingGlassPlusIcon
-                            className="h-4 md:h-5 lg:h-6"
+                            className="h-5 lg:h-6"
                             style={{ color: "white" }}
                           />
                         </button>
