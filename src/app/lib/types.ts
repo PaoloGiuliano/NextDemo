@@ -35,8 +35,17 @@ export interface Task {
   floorplan_id: string;
   pos_x: number;
   pos_y: number;
+  cost_value: number | null;
+  man_power_value: number | null;
+  start_at: string | null; // ISO 8601 datetime string
+  end_at: string | null;
+  due_date: string | null; // ISO 8601 date string
+  due_at: string | null;
+  fixed_at: string | null;
+  verified_at: string | null;
   bubbles: Bubble[];
 }
+
 export interface Bubble {
   id: string;
   updated_at: string;

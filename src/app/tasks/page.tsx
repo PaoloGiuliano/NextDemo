@@ -3,8 +3,12 @@ import { Project, Task, Status, Floorplan } from "../lib/types";
 import CustomDropdown from "@/components/CustomDropdown";
 import { useEffect, useRef, useState } from "react";
 import { ArrowTurnDownRightIcon, MapPinIcon } from "@heroicons/react/16/solid";
-import { BackwardIcon } from "@heroicons/react/24/outline";
-import { ForwardIcon } from "@heroicons/react/24/outline";
+import {
+  BackwardIcon,
+  ForwardIcon,
+  MagnifyingGlassPlusIcon,
+  MagnifyingGlassMinusIcon,
+} from "@heroicons/react/24/outline";
 import TaskModal from "@/components/TaskModal";
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -26,6 +30,7 @@ export default function Tasks() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [sortDirection, setSortDirection] = useState("DESC");
+  const [scale, setScale] = useState(0.7);
 
   const fetchProjects = async () => {
     try {
@@ -260,7 +265,6 @@ export default function Tasks() {
             );
             const status = statuses.find((st) => st.id === task.status_id);
 
-            const scale = 0.6;
             const imgTargetX = task.pos_x;
             const imgTargetY = task.pos_y;
             const containerTargetX = dimensions.width / 2;
@@ -360,7 +364,7 @@ export default function Tasks() {
                     >
                       <a
                         className=""
-                        href={floorplan?.sheets[0].file_url}
+                        href={floorplan?.sheets[0].original_url}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -394,13 +398,43 @@ export default function Tasks() {
                           }}
                         />
                       </div>
-                      <div className="absolute top-0 right-0 left-0 bg-black/75 p-1 text-center md:p-2">
+                      <div className="absolute top-0 right-0 left-0 bg-black/75 p-1 text-left md:p-2">
                         <p
                           className="text-xs text-white md:text-sm xl:text-base 2xl:text-lg"
                           style={{}}
                         >
                           {floorplan?.description} - {floorplan?.name}
                         </p>
+                        <div className="absolute top-0 right-0 left-0 flex justify-end space-x-2 p-1 md:p-2">
+                          <button
+                            disabled={scale == 0.7}
+                            hidden={true}
+                            className="rounded border border-gray-100 px-1 text-white disabled:opacity-0"
+                            onClick={() => setScale(0.7)}
+                          >
+                            reset
+                          </button>
+                          <button
+                            className="hover:cursor-pointer disabled:cursor-default disabled:opacity-50"
+                            onClick={() => setScale(scale - 0.1)}
+                            disabled={scale <= 0.3}
+                          >
+                            <MagnifyingGlassMinusIcon
+                              className="h-4 md:h-5 lg:h-6"
+                              style={{ color: "white" }}
+                            />
+                          </button>
+                          <button
+                            className="hover:cursor-pointer disabled:cursor-default disabled:opacity-50"
+                            onClick={() => setScale(scale + 0.1)}
+                            disabled={scale >= 5}
+                          >
+                            <MagnifyingGlassPlusIcon
+                              className="h-4 md:h-5 lg:h-6"
+                              style={{ color: "white" }}
+                            />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>

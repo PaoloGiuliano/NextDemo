@@ -143,8 +143,11 @@ export default function TaskModal({
           </div>
           <div
             ref={imageDivRef}
-            className="relative col-span-4 flex aspect-video h-auto w-full justify-center sm:row-span-1 md:row-span-2 md:aspect-auto md:h-full md:w-auto lg:row-span-3 xl:row-span-4 2xl:row-span-4"
+            className="group relative col-span-4 flex aspect-video h-auto w-full justify-center sm:row-span-1 md:row-span-2 md:aspect-auto md:h-full md:w-auto lg:row-span-3 xl:row-span-4 2xl:row-span-4"
           >
+            <p className="absolute top-0 right-0 left-0 bg-black/80 p-1 text-center text-xs text-white group-hover:block md:hidden md:text-base">
+              {floorplan?.description} - {floorplan?.name}
+            </p>
             <a
               className="hover:cursor-pointer"
               href={floorplan ? floorplan?.sheets[0].original_url : ""}
@@ -228,6 +231,54 @@ export default function TaskModal({
             <h1 className="text-center text-sm underline xl:text-lg">
               Attributes
             </h1>
+            {task?.man_power_value !== null && (
+              <div className="flex justify-between px-2">
+                <p>Man Power</p>
+                <p>{task?.man_power_value}</p>
+              </div>
+            )}
+
+            {task?.start_at !== null && (
+              <div className="flex justify-between px-2">
+                <p>Start At</p>
+                <p>{task?.start_at}</p>
+              </div>
+            )}
+
+            {task?.end_at !== null && (
+              <div className="flex justify-between px-2">
+                <p>End At</p>
+                <p>{task?.end_at}</p>
+              </div>
+            )}
+
+            {task?.due_date !== null && (
+              <div className="flex justify-between px-2">
+                <p>Due Date</p>
+                <p>{task?.due_date}</p>
+              </div>
+            )}
+
+            {task?.due_at !== null && (
+              <div className="flex justify-between px-2">
+                <p>Due At</p>
+                <p>{task?.due_at}</p>
+              </div>
+            )}
+
+            {task?.fixed_at !== null && (
+              <div className="flex justify-between px-2">
+                <p>Fixed At</p>
+                <p>{task?.fixed_at}</p>
+              </div>
+            )}
+
+            {task?.verified_at !== null && (
+              <div className="flex justify-between px-2">
+                <p>Verified At</p>
+                <p>{task?.verified_at}</p>
+              </div>
+            )}
           </div>
           <div className="overflow-y-auto bg-gray-100 md:col-span-2 md:row-span-6 lg:row-span-5 xl:row-span-4 2xl:col-span-1 2xl:row-span-4">
             <h1 className="text-center text-sm underline xl:text-lg">
