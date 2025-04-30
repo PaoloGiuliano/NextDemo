@@ -406,14 +406,7 @@ export default function Tasks() {
                           {floorplan?.description} - {floorplan?.name}
                         </p>
                       </div>
-                      <div className="absolute right-0 bottom-0 flex justify-end space-x-2 rounded-tl bg-black/80 p-1 md:p-2">
-                        <button
-                          hidden={scale == 0.7}
-                          className="rounded border border-white bg-red-900/90 px-1 text-xs text-white hover:cursor-pointer disabled:z-[-20] disabled:opacity-0 md:text-base"
-                          onClick={() => setScale(0.7)}
-                        >
-                          reset zoom
-                        </button>
+                      <div className="absolute right-0 bottom-0 flex justify-end space-x-2 rounded-tl bg-black/60 p-1 md:p-2">
                         <button
                           className="hover:cursor-pointer disabled:cursor-default disabled:opacity-50"
                           onClick={() => setScale(scale - 0.1)}
@@ -433,6 +426,18 @@ export default function Tasks() {
                             className="h-4 md:h-5 lg:h-6"
                             style={{ color: "white" }}
                           />
+                        </button>
+                      </div>
+
+                      <div
+                        hidden={scale == 0.7}
+                        className="absolute bottom-0 left-0 rounded-tr bg-black/60 p-1 md:p-2"
+                      >
+                        <button
+                          className="rounded px-1 text-xs text-white hover:cursor-pointer md:text-sm"
+                          onClick={() => setScale(0.7)}
+                        >
+                          RESET ZOOM
                         </button>
                       </div>
                     </div>
