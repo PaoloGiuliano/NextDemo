@@ -2,11 +2,7 @@
 import { Project, Task, Status, Floorplan } from "../lib/types";
 import CustomDropdown from "@/components/CustomDropdown";
 import { useEffect, useRef, useState } from "react";
-import {
-  ArrowTurnDownRightIcon,
-  DivideIcon,
-  MapPinIcon,
-} from "@heroicons/react/16/solid";
+import { ArrowTurnDownRightIcon, MapPinIcon } from "@heroicons/react/16/solid";
 import {
   BackwardIcon,
   ForwardIcon,
