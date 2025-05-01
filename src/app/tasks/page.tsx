@@ -2,7 +2,11 @@
 import { Project, Task, Status, Floorplan } from "../lib/types";
 import CustomDropdown from "@/components/CustomDropdown";
 import { useEffect, useRef, useState } from "react";
-import { ArrowTurnDownRightIcon, MapPinIcon } from "@heroicons/react/16/solid";
+import {
+  ArrowTurnDownRightIcon,
+  DivideIcon,
+  MapPinIcon,
+} from "@heroicons/react/16/solid";
 import {
   BackwardIcon,
   ForwardIcon,
@@ -450,22 +454,123 @@ export default function Tasks() {
       </div>
 
       {/* Pagination */}
-      <div className="mt-6 flex w-full items-center justify-center gap-4">
-        <button
-          disabled={page <= 0}
-          className="hover:cursor-pointer disabled:cursor-default disabled:opacity-10"
-          onClick={() => navigatePage("back")}
-        >
-          <BackwardIcon className="h-10 w-10 fill-gray-600 text-gray-900 hover:fill-red-400" />
-        </button>
-        <span className="text-sm">Page {page + 1}</span>
-        <button
-          disabled={taskCount - (page + 1) * selectedPageCount <= 0}
-          className="hover:cursor-pointer disabled:cursor-default disabled:opacity-10"
-          onClick={() => navigatePage("next")}
-        >
-          <ForwardIcon className="h-10 w-10 fill-gray-600 text-gray-900 hover:fill-green-400" />
-        </button>
+      <div className="mt-5 flex w-full items-center justify-center">
+        <div className="flex space-x-2 text-lg hover:cursor-pointer md:text-xl">
+          <button
+            disabled={page <= 0}
+            className="hover:cursor-pointer disabled:cursor-default disabled:opacity-10"
+            onClick={() => {
+              navigatePage("back");
+            }}
+          >
+            <BackwardIcon className="h-10 w-10 fill-gray-600 text-gray-900 hover:fill-red-400" />
+          </button>
+          <div className="flex">
+            {Array.from({ length: 5 }, (_, i) => {
+              const setPageIndex = -5 + i;
+              const disableIndex = -4 + i;
+              return (
+                <button
+                  key={i}
+                  className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
+                  disabled={page + disableIndex < 1}
+                  onClick={() => setPage(page + setPageIndex)}
+                >
+                  {page + disableIndex < 1 ? "0" : page + disableIndex}
+                </button>
+              );
+            })}
+            {/* <button
+              className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
+              disabled={page - 1 < 1}
+              onClick={() => setPage(page - 2)}
+            >
+              {page - 1 < 1 ? "0" : page - 1}
+            </button>
+            <button
+              className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
+              disabled={page < 1}
+              onClick={() => setPage(page - 1)}
+            >
+              {page < 1 ? "" : page}
+            </button> */}
+            <button
+              className="p-2 text-xl font-bold underline underline-offset-2 disabled:cursor-default disabled:opacity-0 md:text-2xl"
+              disabled={
+                taskCount -
+                  (page + 1) * selectedPageCount +
+                  selectedPageCount <=
+                0
+              }
+              onClick={() => setPage(page)}
+            >
+              {taskCount - (page + 1) * selectedPageCount + selectedPageCount <=
+              0
+                ? "0"
+                : page + 1}
+            </button>
+            {Array.from({ length: 5 }, (_, i) => {
+              const setPageIndex = 1 + i;
+              const disableIndex = 2 + i;
+              return (
+                <button
+                  key={i}
+                  className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
+                  disabled={
+                    taskCount -
+                      (page + disableIndex) * selectedPageCount +
+                      selectedPageCount <=
+                    0
+                  }
+                  onClick={() => setPage(page + setPageIndex)}
+                >
+                  {page + disableIndex < 1 ? "0" : page + disableIndex}
+                </button>
+              );
+            })}
+            {/* <button
+              className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
+              disabled={
+                taskCount -
+                  (page + 2) * selectedPageCount +
+                  selectedPageCount <=
+                0
+              }
+              onClick={() => {
+                setPage(page + 1);
+              }}
+            >
+              {taskCount - (page + 2) * selectedPageCount + selectedPageCount <=
+              0
+                ? "0"
+                : page + 2}
+            </button>
+            <button
+              className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
+              disabled={
+                taskCount -
+                  (page + 3) * selectedPageCount +
+                  selectedPageCount <=
+                0
+              }
+              onClick={() => setPage(page + 2)}
+            >
+              {taskCount - (page + 3) * selectedPageCount + selectedPageCount <=
+              0
+                ? "0"
+                : page + 3}
+            </button> */}
+          </div>
+          <button
+            disabled={taskCount - (page + 1) * selectedPageCount <= 0}
+            className="hover:cursor-pointer disabled:cursor-default disabled:opacity-10"
+            onClick={() => {
+              navigatePage("next");
+            }}
+          >
+            <ForwardIcon className="h-10 w-10 fill-gray-600 text-gray-900 hover:fill-green-400" />
+          </button>
+        </div>
       </div>
       <TaskModal
         isOpen={isModalOpen}

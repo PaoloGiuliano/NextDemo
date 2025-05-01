@@ -74,7 +74,7 @@ export async function GET(
       query += ` AND status_id = $${paramIndex++}`;
       taskCountQuery += ` AND status_id = $${countParamIndex++}`;
       params.push(status_id);
-      countParams.push(floorplan_id);
+      countParams.push(status_id);
     }
     if (floorplan_id) {
       query += ` AND floorplan_id = $${paramIndex++}`;
