@@ -6,6 +6,7 @@ type DropdownObject = {
   name: string;
   color?: string;
   description?: string; // Added optional description field
+  count?: string; //Added optional count field
 };
 
 type Props<T extends DropdownObject | string | number> = {
@@ -56,6 +57,11 @@ export default function CustomDropdown<
     }
     return undefined; // No description for strings/numbers by default
   };
+  const getItemCount = (item: T): string | undefined => {
+    if (typeof item === "object" && "count" in item) {
+      return item.count;
+    }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -95,12 +101,18 @@ export default function CustomDropdown<
               }}
               className="cursor-pointer px-4 py-2 hover:bg-gray-100"
               style={{ color: getItemColor(item) }}
+              hidden={parseInt(getItemCount(item) || "2") > 1 ? false : true}
             >
               <div>
                 <div>{getDisplayName(item)}</div>
                 {getItemDescription(item) && (
                   <div className="text-xs text-gray-500">
                     {getItemDescription(item)}
+                  </div>
+                )}
+                {getItemCount(item) && (
+                  <div className="text-xs text-gray-500">
+                    {getItemCount(item)}
                   </div>
                 )}
               </div>

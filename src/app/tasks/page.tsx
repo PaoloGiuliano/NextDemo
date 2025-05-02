@@ -15,6 +15,7 @@ import {
   MagnifyingGlassMinusIcon,
 } from "@heroicons/react/24/outline";
 import TaskModal from "@/components/TaskModal";
+import { error } from "console";
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -158,6 +159,10 @@ export default function Tasks() {
     }
   }, [selectedProject]);
   useEffect(() => {
+    const qcStatus = statuses.find((s) => s.name === "Quality control");
+    console.log(qcStatus);
+  }, [statuses]);
+  useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
@@ -227,8 +232,9 @@ export default function Tasks() {
           <div className="flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-800">
             {selectedFloorplan.name}
             <button
-              onClick={() => setSelectedFloorplan(null)}
-              className="ml-2 font-bold text-gray-500 hover:cursor-pointer hover:text-gray-700"
+              onClick={() => {
+                setSelectedFloorplan(null);
+              }}
             >
               ×
             </button>
@@ -242,7 +248,9 @@ export default function Tasks() {
           >
             {selectedStatus.name}
             <button
-              onClick={() => setSelectedStatus(null)}
+              onClick={() => {
+                setSelectedStatus(null);
+              }}
               className="ml-2 font-bold text-gray-500 hover:cursor-pointer hover:text-gray-700"
             >
               ×

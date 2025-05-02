@@ -150,15 +150,20 @@ export default function TaskModal({
             </p>
             <a
               className="hover:cursor-pointer"
-              href={floorplan ? floorplan?.sheets[0].original_url : ""}
+              href={floorplan ? floorplan?.sheets[0].original_url : undefined}
               rel="noopener noreferrer"
               target="_blank"
             >
               <img
                 ref={imageRef}
-                src={floorplan ? floorplan?.sheets[0].file_url : ""}
+                src={
+                  floorplan
+                    ? floorplan?.sheets[0].file_url
+                    : "/Image-not-found.png"
+                }
                 alt="floorplan"
                 className="max-h-full object-contain"
+                style={{}}
               />
             </a>
             <div
@@ -175,6 +180,7 @@ export default function TaskModal({
                   color: `${status ? status.color : "#000000"}`,
                   fill: `${status ? status.color : "#FFFFFF"}CC`,
                   stroke: "#000000",
+                  opacity: !floorplan ? 0 : 100,
                 }}
               />
             </div>

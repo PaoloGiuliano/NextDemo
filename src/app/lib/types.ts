@@ -25,6 +25,7 @@ export interface Status {
   id: string;
   name: string;
   color: string;
+  count: string;
 }
 export interface Task {
   id: string;
