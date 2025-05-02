@@ -2,10 +2,15 @@
 import { Project, Task, Status, Floorplan } from "../lib/types";
 import CustomDropdown from "@/components/CustomDropdown";
 import { useEffect, useRef, useState } from "react";
-import { ArrowTurnDownRightIcon, MapPinIcon } from "@heroicons/react/16/solid";
 import {
-  BackwardIcon,
-  ForwardIcon,
+  ArrowTurnDownRightIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MapPinIcon,
+} from "@heroicons/react/16/solid";
+import {
   MagnifyingGlassPlusIcon,
   MagnifyingGlassMinusIcon,
 } from "@heroicons/react/24/outline";
@@ -451,47 +456,44 @@ export default function Tasks() {
 
       {/* Pagination */}
       <div className="mt-5 flex w-full items-center justify-center">
-        <div className="flex space-x-2 text-lg hover:cursor-pointer md:text-xl">
+        <div className="flex text-lg hover:cursor-pointer md:text-xl">
           <button
             disabled={page <= 0}
-            className="hover:cursor-pointer disabled:cursor-default disabled:opacity-10"
+            className="group hover:cursor-pointer disabled:cursor-default"
+            onClick={() => {
+              setPage(0);
+            }}
+          >
+            <ChevronDoubleLeftIcon className="h-10 w-10 fill-gray-600 text-gray-800 group-disabled:fill-[#15448c] group-disabled:opacity-50 hover:fill-[#15448c] md:h-12 md:w-12" />
+          </button>
+          <button
+            disabled={page <= 0}
+            className="group hover:cursor-pointer disabled:cursor-default"
             onClick={() => {
               navigatePage("back");
             }}
           >
-            <BackwardIcon className="h-10 w-10 fill-gray-600 text-gray-900 hover:fill-red-400" />
+            <ChevronLeftIcon className="h-10 w-10 fill-gray-600 text-gray-800 group-disabled:fill-[#15448c] group-disabled:opacity-50 hover:fill-[#15448c] md:h-12 md:w-12" />
           </button>
+
           <div className="flex">
-            {Array.from({ length: 5 }, (_, i) => {
-              const setPageIndex = -5 + i;
-              const disableIndex = -4 + i;
+            {Array.from({ length: 3 }, (_, i) => {
+              const setPageIndex = -3 + i;
+              const disableIndex = -2 + i;
+
               return (
                 <button
                   key={i}
                   className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
-                  disabled={page + disableIndex < 1}
+                  hidden={page + disableIndex < 1}
                   onClick={() => setPage(page + setPageIndex)}
                 >
                   {page + disableIndex < 1 ? "0" : page + disableIndex}
                 </button>
               );
             })}
-            {/* <button
-              className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
-              disabled={page - 1 < 1}
-              onClick={() => setPage(page - 2)}
-            >
-              {page - 1 < 1 ? "0" : page - 1}
-            </button>
             <button
-              className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
-              disabled={page < 1}
-              onClick={() => setPage(page - 1)}
-            >
-              {page < 1 ? "" : page}
-            </button> */}
-            <button
-              className="p-2 text-xl font-bold underline underline-offset-2 disabled:cursor-default disabled:opacity-0 md:text-2xl"
+              className="p-2 text-xl font-bold text-[#15448c] underline disabled:cursor-default disabled:opacity-0 md:text-2xl"
               disabled={
                 taskCount -
                   (page + 1) * selectedPageCount +
@@ -505,14 +507,14 @@ export default function Tasks() {
                 ? "0"
                 : page + 1}
             </button>
-            {Array.from({ length: 5 }, (_, i) => {
+            {Array.from({ length: 3 }, (_, i) => {
               const setPageIndex = 1 + i;
               const disableIndex = 2 + i;
               return (
                 <button
                   key={i}
                   className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
-                  disabled={
+                  hidden={
                     taskCount -
                       (page + disableIndex) * selectedPageCount +
                       selectedPageCount <=
@@ -524,47 +526,24 @@ export default function Tasks() {
                 </button>
               );
             })}
-            {/* <button
-              className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
-              disabled={
-                taskCount -
-                  (page + 2) * selectedPageCount +
-                  selectedPageCount <=
-                0
-              }
-              onClick={() => {
-                setPage(page + 1);
-              }}
-            >
-              {taskCount - (page + 2) * selectedPageCount + selectedPageCount <=
-              0
-                ? "0"
-                : page + 2}
-            </button>
-            <button
-              className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
-              disabled={
-                taskCount -
-                  (page + 3) * selectedPageCount +
-                  selectedPageCount <=
-                0
-              }
-              onClick={() => setPage(page + 2)}
-            >
-              {taskCount - (page + 3) * selectedPageCount + selectedPageCount <=
-              0
-                ? "0"
-                : page + 3}
-            </button> */}
           </div>
           <button
             disabled={taskCount - (page + 1) * selectedPageCount <= 0}
-            className="hover:cursor-pointer disabled:cursor-default disabled:opacity-10"
+            className="group hover:cursor-pointer disabled:cursor-default"
             onClick={() => {
               navigatePage("next");
             }}
           >
-            <ForwardIcon className="h-10 w-10 fill-gray-600 text-gray-900 hover:fill-green-400" />
+            <ChevronRightIcon className="h-10 w-10 fill-gray-600 text-gray-800 group-disabled:fill-gray-400 hover:fill-gray-400 md:h-12 md:w-12" />
+          </button>
+          <button
+            disabled={taskCount - (page + 1) * selectedPageCount <= 0}
+            className="group hover:cursor-pointer disabled:cursor-default"
+            onClick={() => {
+              setPage(Math.floor(taskCount / selectedPageCount));
+            }}
+          >
+            <ChevronDoubleRightIcon className="h-10 w-10 fill-gray-600 text-gray-800 group-disabled:fill-gray-400 hover:fill-gray-400 md:h-12 md:w-12" />
           </button>
         </div>
       </div>
