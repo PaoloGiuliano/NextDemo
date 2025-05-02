@@ -15,7 +15,6 @@ import {
   MagnifyingGlassMinusIcon,
 } from "@heroicons/react/24/outline";
 import TaskModal from "@/components/TaskModal";
-import { error } from "console";
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
