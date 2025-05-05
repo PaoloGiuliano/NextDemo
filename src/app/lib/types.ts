@@ -4,6 +4,7 @@ export interface Floorplan {
   description: string;
   updated_at: string;
   project_id: string;
+  count: string;
   sheets: Sheet[];
 }
 export interface Sheet {

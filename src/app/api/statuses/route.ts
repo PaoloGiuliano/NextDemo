@@ -15,6 +15,7 @@ export async function GET(
 ): Promise<NextResponse<Status | { error: string }>> {
   const secret = req.headers.get("x-internal-secret");
   const project_id = req.nextUrl.searchParams.get("project_id");
+  const floorplan_id = req.nextUrl.searchParams.get("floorplan_id");
   if (secret !== process.env.INTERNAL_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -27,12 +28,11 @@ export async function GET(
     const client = await pool.connect();
     const result = await client.query(
       // "SELECT * FROM statuses WHERE project_id = $1",
-      "SELECT s.*, count(s.id) AS count FROM statuses s LEFT JOIN tasks t ON s.id = t.status_id WHERE s.project_id = $1 GROUP BY s.id ORDER BY count(s.id) DESC",
+      `SELECT s.*, COUNT(t.id) AS count FROM statuses s LEFT JOIN tasks t ON s.id = t.status_id ${floorplan_id ? "AND t.floorplan_id = '" + floorplan_id + "'" : ""} WHERE s.project_id = $1 GROUP BY s.id ORDER BY count DESC`,
       [project_id],
     );
-    const data = result.rows as Status;
 
-    console.log(data);
+    const data = result.rows as Status;
     client.release();
     return NextResponse.json(data);
   } catch (err) {

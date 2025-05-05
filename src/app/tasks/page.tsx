@@ -59,9 +59,12 @@ export default function Tasks() {
       setProjects([]);
     }
   };
-  const fetchFloorplans = async (project: Project | null) => {
+  const fetchFloorplans = async (
+    project: Project | null,
+    status: Status | null,
+  ) => {
     try {
-      const url = `/api/floorplans?project_id=${project?.id}`;
+      const url = `/api/floorplans?project_id=${project ? project.id : ""}&status_id=${status ? status.id : ""}`;
       const headers: Record<string, string> = {};
       if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
         headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
@@ -76,13 +79,16 @@ export default function Tasks() {
       setFloorplans([]);
     }
   };
-  const fetchStatuses = async (project: Project | null) => {
+  const fetchStatuses = async (
+    project: Project | null,
+    floorplan: Floorplan | null,
+  ) => {
     try {
       const headers: Record<string, string> = {};
       if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
         headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
       }
-      const url = `/api/statuses?project_id=${project ? project.id : ""}`;
+      const url = `/api/statuses?project_id=${project ? project.id : ""}&floorplan_id=${floorplan ? floorplan.id : ""}`;
       const response = await fetch(url, {
         method: "GET",
         headers,
@@ -140,6 +146,8 @@ export default function Tasks() {
 
   useEffect(() => {
     if (selectedProject) fetchTasks(selectedProject);
+    if (selectedProject) fetchStatuses(selectedProject, selectedFloorplan);
+    if (selectedProject) fetchFloorplans(selectedProject, selectedStatus);
   }, [
     page,
     selectedPageCount,
@@ -150,17 +158,13 @@ export default function Tasks() {
   // Waiting for selectedProject to exist before fetching Floorplans
   useEffect(() => {
     if (selectedProject) {
-      fetchFloorplans(selectedProject);
+      fetchFloorplans(selectedProject, selectedStatus);
       setSelectedFloorplan(null);
-      fetchStatuses(selectedProject);
+      fetchStatuses(selectedProject, selectedFloorplan);
       setSelectedStatus(null);
       fetchTasks(selectedProject);
     }
   }, [selectedProject]);
-  useEffect(() => {
-    const qcStatus = statuses.find((s) => s.name === "Quality control");
-    console.log(qcStatus);
-  }, [statuses]);
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -212,8 +216,8 @@ export default function Tasks() {
           placeholder="Tasks per page..."
           title="Tasks per page"
         />
-        <div>
-          <p>Sort Order</p>
+        <div className="inline-flex items-center gap-2">
+          <span className="text-sm text-gray-700">Sort Order:</span>
           <button
             className="rounded border border-gray-300 bg-white px-4 py-2 text-left hover:cursor-pointer"
             onClick={() => {
@@ -231,6 +235,7 @@ export default function Tasks() {
           <div className="flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-800">
             {selectedFloorplan.name}
             <button
+              className="ml-2 font-bold text-gray-500 hover:cursor-pointer hover:text-gray-700"
               onClick={() => {
                 setSelectedFloorplan(null);
               }}
@@ -466,7 +471,7 @@ export default function Tasks() {
         <div className="flex text-lg hover:cursor-pointer md:text-xl">
           <button
             disabled={page <= 0}
-            className="group hover:cursor-pointer disabled:cursor-default"
+            className="group hover:cursor-pointer disabled:cursor-default disabled:opacity-0"
             onClick={() => {
               setPage(0);
             }}
@@ -475,7 +480,7 @@ export default function Tasks() {
           </button>
           <button
             disabled={page <= 0}
-            className="group hover:cursor-pointer disabled:cursor-default"
+            className="group hover:cursor-pointer disabled:cursor-default disabled:opacity-0"
             onClick={() => {
               navigatePage("back");
             }}
@@ -536,7 +541,7 @@ export default function Tasks() {
           </div>
           <button
             disabled={taskCount - (page + 1) * selectedPageCount <= 0}
-            className="group hover:cursor-pointer disabled:cursor-default"
+            className="group hover:cursor-pointer disabled:cursor-default disabled:opacity-0"
             onClick={() => {
               navigatePage("next");
             }}
@@ -545,7 +550,7 @@ export default function Tasks() {
           </button>
           <button
             disabled={taskCount - (page + 1) * selectedPageCount <= 0}
-            className="group hover:cursor-pointer disabled:cursor-default"
+            className="group hover:cursor-pointer disabled:cursor-default disabled:opacity-0"
             onClick={() => {
               setPage(Math.floor(taskCount / selectedPageCount));
             }}

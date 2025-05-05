@@ -4,8 +4,8 @@ import { NextResponse, NextRequest } from "next/server";
 type Floorplan = {
   id: string;
   name: string;
-
   project_id: string;
+  count: string;
   sheets: Sheet[];
 };
 
@@ -30,6 +30,7 @@ export async function GET(
 ): Promise<NextResponse<Floorplan[] | { error: string }>> {
   const secret = req.headers.get("x-internal-secret");
   const project_id = req.nextUrl.searchParams.get("project_id");
+  const status_id = req.nextUrl.searchParams.get("status_id");
   if (secret !== process.env.INTERNAL_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -43,7 +44,8 @@ export async function GET(
 
     // Get floorplans
     const floorplansResult = await client.query(
-      "SELECT * FROM floorplans WHERE project_id = $1",
+      // "SELECT * FROM floorplans WHERE project_id = $1",
+      `SELECT f.* , COUNT(t.id) AS count FROM floorplans f LEFT JOIN tasks t ON f.id = t.floorplan_id ${status_id ? "AND t.status_id = '" + status_id + "'" : ""} WHERE f.project_id = $1 GROUP by f.id ORDER BY count DESC`,
       [project_id],
     );
     const floorplans = floorplansResult.rows as Floorplan[];
