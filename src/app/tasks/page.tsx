@@ -36,6 +36,7 @@ export default function Tasks() {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [sortDirection, setSortDirection] = useState("DESC");
   const [scale, setScale] = useState(0.7);
+  const [search, setSearch] = useState("");
 
   const fetchProjects = async () => {
     try {
@@ -112,7 +113,7 @@ export default function Tasks() {
         project ? project.id : ""
       }&status_id=${selectedStatus ? selectedStatus.id : ""}&floorplan_id=${
         selectedFloorplan ? selectedFloorplan.id : ""
-      }&page=${page ? page : 0}&page_count=${selectedPageCount}&sort_directions=${sortDirection}`;
+      }&page=${page ? page : 0}&page_count=${selectedPageCount}&sort_directions=${sortDirection}&search=${search}`;
       const response = await fetch(url, {
         method: "GET",
         headers,
@@ -120,8 +121,8 @@ export default function Tasks() {
       if (!response.ok) throw new Error("Failed to fetch tasks");
       const tasks = await response.json();
       const taskCount = response.headers.get("x-task-count");
-      setTaskCount(taskCount ? parseInt(taskCount) : 0);
       setTasks(tasks);
+      setTaskCount(taskCount ? parseInt(taskCount) : 0);
     } catch (error) {
       console.error("Error fetching tasks:", error);
       setTasks([]);
@@ -145,15 +146,18 @@ export default function Tasks() {
   }, [selectedFloorplan, selectedPageCount, selectedStatus, selectedProject]);
 
   useEffect(() => {
-    if (selectedProject) fetchTasks(selectedProject);
-    if (selectedProject) fetchStatuses(selectedProject, selectedFloorplan);
-    if (selectedProject) fetchFloorplans(selectedProject, selectedStatus);
+    if (selectedProject) {
+      fetchTasks(selectedProject);
+      fetchStatuses(selectedProject, selectedFloorplan);
+      fetchFloorplans(selectedProject, selectedStatus);
+    }
   }, [
     page,
     selectedPageCount,
     selectedStatus,
     selectedFloorplan,
     sortDirection,
+    search,
   ]);
   // Waiting for selectedProject to exist before fetching Floorplans
   useEffect(() => {
@@ -227,6 +231,10 @@ export default function Tasks() {
             {sortDirection === "DESC" ? "DESC ▼" : "ASC ▲"}
           </button>
         </div>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        ></input>
       </div>
 
       {/* Pills */}

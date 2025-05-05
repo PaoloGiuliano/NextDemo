@@ -28,9 +28,6 @@ type Bubble = {
   original_url: string;
   flattened_file_url: string;
 };
-type Count = {
-  count: string;
-};
 export async function GET(
   req: NextRequest,
 ): Promise<NextResponse<Task[] | { error: string }>> {
@@ -44,6 +41,7 @@ export async function GET(
     10,
   );
   const sortDirection = req.nextUrl.searchParams.get("sort_directions");
+  const search = req.nextUrl.searchParams.get("search");
 
   if (secret !== process.env.INTERNAL_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -54,21 +52,40 @@ export async function GET(
   const client = await pool.connect();
   try {
     let query = `SELECT 
-                 tasks.*, 
-                 TO_CHAR(bubble_updates.latest_bubble_update AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH12:MI:SS AM') AS modified_at
-                 FROM tasks
-                 JOIN (
-                 SELECT task_id, MAX(updated_at) AS latest_bubble_update
-                 FROM bubbles
-                 GROUP BY task_id
-                 ) AS bubble_updates ON tasks.id = bubble_updates.task_id
-                 WHERE project_id = $1`;
-    let taskCountQuery = `SELECT count(id) FROM tasks WHERE project_id = $1`;
+    tasks.*, 
+    TO_CHAR(bubble_updates.latest_bubble_update AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH12:MI:SS AM') AS modified_at
+FROM tasks
+JOIN (
+    SELECT task_id, MAX(updated_at) AS latest_bubble_update
+    FROM bubbles
+    GROUP BY task_id
+) AS bubble_updates ON tasks.id = bubble_updates.task_id
+INNER JOIN statuses s ON s.id = tasks.status_id
+INNER JOIN floorplans f ON f.id = tasks.floorplan_id
+WHERE tasks.project_id = $1
+AND (
+    tasks.name ILIKE $2 
+    OR f.name ILIKE $2
+    OR s.name ILIKE $2
+    OR f.description ILIKE $2
+)`;
+    let taskCountQuery = `SELECT count(t.id) 
+                          FROM tasks t
+                          INNER JOIN statuses s ON s.id = t.status_id
+                          INNER JOIN floorplans f ON f.id = t.floorplan_id                         
+                          WHERE t.project_id = $1
+                          AND (
+                              t.name ILIKE $2 
+                              OR f.name ILIKE $2
+                              OR s.name ILIKE $2
+                              OR f.description ILIKE $2
+                          )
+                          `;
 
-    const params: any[] = [project_id];
-    const countParams: any[] = [project_id];
-    let countParamIndex = 2;
-    let paramIndex = 2;
+    const params: any[] = [project_id, `%${search}%`];
+    const countParams: any[] = [project_id, `%${search}%`];
+    let countParamIndex = 3;
+    let paramIndex = 3;
 
     if (status_id) {
       query += ` AND status_id = $${paramIndex++}`;
@@ -85,11 +102,13 @@ export async function GET(
 
     query += ` ORDER BY bubble_updates.latest_bubble_update ${sortDirection} LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
     params.push(pageCount, page * pageCount);
-
+    console.log(query);
+    console.log(taskCountQuery);
     const tasksResults = await client.query(query, params);
     const taskCountResults = await client.query(taskCountQuery, countParams);
-    const taskCount = taskCountResults.rows as Count[];
+    const taskCount = taskCountResults.rows;
     const tasks = tasksResults.rows as Task[];
+    console.log(tasks.length);
 
     const bubblesResults = await client.query(
       "SELECT *, TO_CHAR(created_at AT TIME ZONE 'America/Toronto', 'YY/MM/DD FMHH12:MI am') AS formatted_created_at FROM bubbles WHERE project_id = $1 AND task_id = ANY($2) ORDER BY created_at ASC",
