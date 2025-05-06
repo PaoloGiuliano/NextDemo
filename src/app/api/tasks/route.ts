@@ -102,13 +102,10 @@ AND (
 
     query += ` ORDER BY bubble_updates.latest_bubble_update ${sortDirection} LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
     params.push(pageCount, page * pageCount);
-    console.log(query);
-    console.log(taskCountQuery);
     const tasksResults = await client.query(query, params);
     const taskCountResults = await client.query(taskCountQuery, countParams);
     const taskCount = taskCountResults.rows;
     const tasks = tasksResults.rows as Task[];
-    console.log(tasks.length);
 
     const bubblesResults = await client.query(
       "SELECT *, TO_CHAR(created_at AT TIME ZONE 'America/Toronto', 'YY/MM/DD FMHH12:MI am') AS formatted_created_at FROM bubbles WHERE project_id = $1 AND task_id = ANY($2) ORDER BY created_at ASC",

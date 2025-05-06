@@ -18,6 +18,7 @@ import TaskModal from "@/components/TaskModal";
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [searchTasks, setSearchTasks] = useState<Task[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskCount, setTaskCount] = useState(0);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -103,7 +104,10 @@ export default function Tasks() {
     }
   };
 
-  const fetchTasks = async (project: Project | null) => {
+  const fetchTasks = async (
+    project: Project | null,
+    searchTasks: boolean | null,
+  ) => {
     try {
       const headers: Record<string, string> = {};
       if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
@@ -121,8 +125,12 @@ export default function Tasks() {
       if (!response.ok) throw new Error("Failed to fetch tasks");
       const tasks = await response.json();
       const taskCount = response.headers.get("x-task-count");
-      setTasks(tasks);
-      setTaskCount(taskCount ? parseInt(taskCount) : 0);
+      if (searchTasks) {
+        setSearchTasks(tasks);
+      } else {
+        setTasks(tasks);
+        setTaskCount(taskCount ? parseInt(taskCount) : 0);
+      }
     } catch (error) {
       console.error("Error fetching tasks:", error);
       setTasks([]);
@@ -138,35 +146,54 @@ export default function Tasks() {
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
   useEffect(() => {
     fetchProjects(); // Fetch projects when the component mounts
   }, []);
-  useEffect(() => {
-    setPage(0); // Reset page when filters change
-  }, [selectedFloorplan, selectedPageCount, selectedStatus, selectedProject]);
 
   useEffect(() => {
-    if (selectedProject) {
-      fetchTasks(selectedProject);
-      fetchStatuses(selectedProject, selectedFloorplan);
-      fetchFloorplans(selectedProject, selectedStatus);
-    }
+    setPage(0); // Reset page when filters change
+  }, [taskCount]);
+
+  useEffect(() => {
+    if (!selectedProject) return;
+    fetchTasks(selectedProject, false);
+    fetchStatuses(selectedProject, selectedFloorplan);
+    fetchFloorplans(selectedProject, selectedStatus);
   }, [
     page,
     selectedPageCount,
     selectedStatus,
     selectedFloorplan,
     sortDirection,
-    search,
+    taskCount,
   ]);
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      if (selectedProject) {
+        if (search == "") {
+          setSearchTasks([]);
+          fetchTasks(selectedProject, false);
+        } else {
+          fetchTasks(selectedProject, true);
+        }
+        fetchStatuses(selectedProject, selectedFloorplan);
+        fetchFloorplans(selectedProject, selectedStatus);
+      }
+    }, 500); // adjust debounce delay (ms) as needed
+
+    return () => clearTimeout(delay); // clean up on effect re-run
+  }, [search]);
+
   // Waiting for selectedProject to exist before fetching Floorplans
   useEffect(() => {
     if (selectedProject) {
+      setSearch("");
       fetchFloorplans(selectedProject, selectedStatus);
       setSelectedFloorplan(null);
       fetchStatuses(selectedProject, selectedFloorplan);
       setSelectedStatus(null);
-      fetchTasks(selectedProject);
+      fetchTasks(selectedProject, false);
     }
   }, [selectedProject]);
   useEffect(() => {
@@ -231,10 +258,45 @@ export default function Tasks() {
             {sortDirection === "DESC" ? "DESC ▼" : "ASC ▲"}
           </button>
         </div>
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        ></input>
+        <form
+          className="relative"
+          onSubmit={(e) => {
+            e.preventDefault();
+            fetchTasks(selectedProject, false);
+            fetchStatuses(selectedProject, selectedFloorplan);
+            fetchFloorplans(selectedProject, selectedStatus);
+          }}
+        >
+          <input
+            className="m-2 rounded border border-gray-300 px-2"
+            value={search}
+            placeholder="search tasks..."
+            onChange={(e) => setSearch(e.target.value)}
+          ></input>
+          <ul className="absolute top-6 right-0 left-0 z-40 m-2 px-2 text-nowrap">
+            {searchTasks &&
+              searchTasks.map((task) => (
+                <li id={task.id}>
+                  {task.name} - {task.bubbles.length} messages
+                </li>
+              ))}
+          </ul>
+          <button
+            className="m-2 rounded border px-2 text-red-500 hover:cursor-pointer"
+            type="button"
+            onClick={() => {
+              setSearch("");
+            }}
+          >
+            x
+          </button>
+          <button
+            className="m-2 rounded border border-gray-200 px-2 hover:cursor-pointer"
+            type="submit"
+          >
+            Search
+          </button>
+        </form>
       </div>
 
       {/* Pills */}
