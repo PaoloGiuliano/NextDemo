@@ -276,7 +276,7 @@ export default function Tasks() {
           <ul className="absolute top-6 right-0 left-0 z-40 m-2 px-2 text-nowrap">
             {searchTasks &&
               searchTasks.map((task) => (
-                <li id={task.id}>
+                <li key={task.id}>
                   {task.name} - {task.bubbles.length} messages
                 </li>
               ))}
