@@ -9,6 +9,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   MapPinIcon,
+  XCircleIcon,
 } from "@heroicons/react/16/solid";
 import {
   MagnifyingGlassPlusIcon,
@@ -180,7 +181,7 @@ export default function Tasks() {
         fetchStatuses(selectedProject, selectedFloorplan);
         fetchFloorplans(selectedProject, selectedStatus);
       }
-    }, 500); // adjust debounce delay (ms) as needed
+    }, 150); // adjust debounce delay (ms) as needed
 
     return () => clearTimeout(delay); // clean up on effect re-run
   }, [search]);
@@ -259,7 +260,7 @@ export default function Tasks() {
           </button>
         </div>
         <form
-          className="relative"
+          className="group relative"
           onSubmit={(e) => {
             e.preventDefault();
             fetchTasks(selectedProject, false);
@@ -268,30 +269,48 @@ export default function Tasks() {
           }}
         >
           <input
-            className="m-2 rounded border border-gray-300 px-2"
+            className="m-2 rounded border border-gray-300 p-2"
             value={search}
             placeholder="search tasks..."
             onChange={(e) => setSearch(e.target.value)}
           ></input>
-          <ul className="absolute top-6 right-0 left-0 z-40 m-2 px-2 text-nowrap">
+          <ul
+            className="absolute top-12 right-0 left-0 z-40 m-2 hidden rounded bg-gray-200/90 px-2 group-focus-within:block group-focus-within:border-2"
+            style={{ border: searchTasks.length <= 0 ? "none" : "2px solid" }}
+          >
             {searchTasks &&
-              searchTasks.map((task) => (
-                <li key={task.id}>
-                  {task.name} - {task.bubbles.length} messages
+              searchTasks.map((task, index) => (
+                <li
+                  key={task.id}
+                  className=""
+                  style={{
+                    borderTop: index != 0 ? "2px solid black" : "none",
+                  }}
+                >
+                  <button
+                    className="border-black text-left text-black/70 hover:cursor-pointer hover:text-black"
+                    onClick={() => {
+                      setIsModalOpen(true);
+                      setSelectedTask(task || null);
+                    }}
+                  >
+                    {task.name}
+                  </button>
                 </li>
               ))}
           </ul>
           <button
-            className="m-2 rounded border px-2 text-red-500 hover:cursor-pointer"
+            className="m-2 h-10 w-10 rounded border p-2 text-red-500 hover:cursor-pointer"
             type="button"
+            hidden={searchTasks.length <= 0}
             onClick={() => {
               setSearch("");
             }}
           >
-            x
+            <XCircleIcon className="" />
           </button>
           <button
-            className="m-2 rounded border border-gray-200 px-2 hover:cursor-pointer"
+            className="m-2 rounded border border-gray-200 p-2 hover:cursor-pointer"
             type="submit"
           >
             Search
@@ -363,13 +382,6 @@ export default function Tasks() {
               <div
                 key={task.id}
                 className="relative flex w-full flex-col justify-between rounded-sm bg-gray-100 p-4"
-                // style={{
-                //   boxShadow: `${status?.color}66 -5px 5px,
-                //               ${status?.color}4D -10px 10px,
-                //               ${status?.color}33 -15px 15px,
-                //               ${status?.color}1A -20px 20px,
-                //               ${status?.color}0D -25px 25px`,
-                // }}
               >
                 <div className="flex items-start justify-between border-b-2 border-gray-200">
                   <div>

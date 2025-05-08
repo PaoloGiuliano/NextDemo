@@ -95,7 +95,7 @@ export default function CustomDropdown<
       </button>
 
       {open && (
-        <ul className="absolute z-20 mt-1 max-h-60 min-w-full overflow-auto rounded border border-gray-300 bg-white whitespace-nowrap shadow">
+        <ul className="absolute top-full right-0 z-20 mt-1 max-h-60 min-w-full overflow-auto rounded border border-gray-300 bg-white whitespace-nowrap shadow">
           {items.map((item) => (
             <li
               key={getItemKey(item)}
