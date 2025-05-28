@@ -1,4 +1,5 @@
 "use client";
+import dynamic from "next/dynamic";
 import { Project, Task, Status, Floorplan } from "../lib/types";
 import CustomDropdown from "@/components/CustomDropdown";
 import { useEffect, useRef, useState } from "react";
@@ -9,13 +10,14 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   MapPinIcon,
-  XCircleIcon,
 } from "@heroicons/react/16/solid";
 import {
   MagnifyingGlassPlusIcon,
   MagnifyingGlassMinusIcon,
+  XCircleIcon,
 } from "@heroicons/react/24/outline";
 import TaskModal from "@/components/TaskModal";
+import Modal from "@/components/Modal";
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -39,6 +41,10 @@ export default function Tasks() {
   const [sortDirection, setSortDirection] = useState("DESC");
   const [scale, setScale] = useState(0.7);
   const [search, setSearch] = useState("");
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+  const Photo360Viewer = dynamic(() => import("@/components/Photo360Viewer"), {
+    ssr: false,
+  });
 
   const fetchProjects = async () => {
     try {
@@ -260,7 +266,7 @@ export default function Tasks() {
           </button>
         </div>
         <form
-          className="group relative"
+          className="group relative flex items-center"
           onSubmit={(e) => {
             e.preventDefault();
             fetchTasks(selectedProject, false);
@@ -268,47 +274,51 @@ export default function Tasks() {
             fetchFloorplans(selectedProject, selectedStatus);
           }}
         >
-          <input
-            className="m-2 rounded border border-gray-300 p-2"
-            value={search}
-            placeholder="search tasks..."
-            onChange={(e) => setSearch(e.target.value)}
-          ></input>
+          <div className="relative m-2">
+            <input
+              className="m-2 rounded border border-gray-300 p-2"
+              value={search}
+              placeholder="Search tasks..."
+              onChange={(e) => setSearch(e.target.value)}
+            />
+
+            <button
+              className="absolute top-1/2 right-2 mx-2 -translate-y-1/2 rounded text-gray-500 hover:cursor-pointer"
+              type="button"
+              hidden={searchTasks.length <= 0}
+              onClick={() => setSearch("")}
+            >
+              <XCircleIcon className="h-5 w-5" />
+            </button>
+          </div>
+
           <ul
-            className="absolute top-12 right-0 left-0 z-40 m-2 hidden rounded bg-gray-200/90 px-2 group-focus-within:block group-focus-within:border-2"
+            className="absolute top-13 right-0 left-2 z-40 m-2 hidden rounded bg-gray-200/90 px-2 group-focus-within:block group-focus-within:border-2"
             style={{ border: searchTasks.length <= 0 ? "none" : "2px solid" }}
           >
-            {searchTasks &&
-              searchTasks.map((task, index) => (
-                <li
-                  key={task.id}
-                  className=""
-                  style={{
-                    borderTop: index != 0 ? "2px solid black" : "none",
-                  }}
-                >
-                  <button
-                    className="border-black text-left text-black/70 hover:cursor-pointer hover:text-black"
-                    onClick={() => {
+            {searchTasks?.map((task, index) => (
+              <li
+                key={task.id}
+                className=""
+                style={{
+                  borderTop: index !== 0 ? "2px solid black" : "none",
+                }}
+              >
+                <button
+                  className="border-black text-left text-black/70 hover:cursor-pointer hover:text-black"
+                  onMouseDown={(e) => {
+                    if (e.button === 0) {
                       setIsModalOpen(true);
                       setSelectedTask(task || null);
-                    }}
-                  >
-                    {task.name}
-                  </button>
-                </li>
-              ))}
+                    }
+                  }}
+                >
+                  {task.name}
+                </button>
+              </li>
+            ))}
           </ul>
-          <button
-            className="m-2 h-10 w-10 rounded border p-2 text-red-500 hover:cursor-pointer"
-            type="button"
-            hidden={searchTasks.length <= 0}
-            onClick={() => {
-              setSearch("");
-            }}
-          >
-            <XCircleIcon className="" />
-          </button>
+
           <button
             className="m-2 rounded border border-gray-200 p-2 hover:cursor-pointer"
             type="submit"
@@ -435,26 +445,17 @@ export default function Tasks() {
                         </div>
                       );
                     }
-                    return imageBubbles.slice(-6).map((bubble) => (
-                      <a
-                        key={bubble.id}
-                        href={
-                          bubble.flattened_file_url
-                            ? bubble.flattened_file_url
-                            : bubble.kind === 13
-                              ? `https://renderstuff.com/tools/360-panorama-web-viewer/panorama_360_vr?image=${bubble.original_url}`
-                              : bubble.original_url
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                    return imageBubbles
+                      .slice(-6)
+                      .map((bubble) => (
                         <img
+                          key={bubble.id}
                           src={bubble.thumb_url}
                           alt="Bubble"
-                          className="h-full w-full object-cover py-1 pr-2"
+                          className="h-full w-full object-cover py-1 pr-2 hover:cursor-pointer"
+                          onClick={() => setIsPhotoModalOpen(true)}
                         />
-                      </a>
-                    ));
+                      ));
                   })()}
                   <div className="col-start-3 col-end-7 row-start-1 row-end-4 flex flex-col sm:col-start-4 sm:row-end-3">
                     <div
@@ -641,6 +642,14 @@ export default function Tasks() {
           </button>
         </div>
       </div>
+      <Modal
+        isOpen={isPhotoModalOpen}
+        onClose={() => setIsPhotoModalOpen(false)}
+      >
+        {
+          <Photo360Viewer imageUrl="https://tsvabqmdcirbjnxq.s3.us-east-1.amazonaws.com/qvHDimMUqxZcQnsj/60a47baa-f271-4bad-9d39-a5a620d09fbf.jpeg" />
+        }
+      </Modal>
       <TaskModal
         isOpen={isModalOpen}
         onClose={() => {
