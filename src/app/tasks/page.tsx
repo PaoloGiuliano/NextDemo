@@ -42,6 +42,7 @@ export default function Tasks() {
   const [scale, setScale] = useState(0.7);
   const [search, setSearch] = useState("");
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState("");
   const Photo360Viewer = dynamic(() => import("@/components/Photo360Viewer"), {
     ssr: false,
   });
@@ -445,17 +446,47 @@ export default function Tasks() {
                         </div>
                       );
                     }
-                    return imageBubbles
-                      .slice(-6)
-                      .map((bubble) => (
-                        <img
-                          key={bubble.id}
-                          src={bubble.thumb_url}
-                          alt="Bubble"
-                          className="h-full w-full object-cover py-1 pr-2 hover:cursor-pointer"
-                          onClick={() => setIsPhotoModalOpen(true)}
-                        />
-                      ));
+                    return imageBubbles.slice(-6).map((bubble) => (
+                      <div key={bubble.id} className="relative">
+                        {bubble.kind === 13 ? (
+                          <>
+                            <img
+                              key={bubble.id}
+                              src={bubble.thumb_url}
+                              alt="Bubble"
+                              className="h-full w-full object-cover py-1 pr-2 hover:cursor-pointer"
+                              onClick={() => {
+                                setIsPhotoModalOpen(true);
+                                setSelectedPhoto(bubble.file_url);
+                              }}
+                            />
+                            <img
+                              className="pointer-events-none absolute top-1/2 left-1/2 w-1/3 translate-[-50%] py-1 pr-2 opacity-70 hover:cursor-pointer"
+                              src="/360-deg.png"
+                            />
+                          </>
+                        ) : (
+                          <a
+                            href={
+                              bubble.flattened_file_url
+                                ? bubble.flattened_file_url
+                                : bubble.original_url
+                                  ? bubble.original_url
+                                  : bubble.file_url
+                            }
+                            target="blank"
+                            rel="noopener noreferrer"
+                          >
+                            <img
+                              key={bubble.id}
+                              src={bubble.thumb_url}
+                              alt="Bubble"
+                              className="h-full w-full object-cover py-1 pr-2 hover:cursor-pointer"
+                            />
+                          </a>
+                        )}
+                      </div>
+                    ));
                   })()}
                   <div className="col-start-3 col-end-7 row-start-1 row-end-4 flex flex-col sm:col-start-4 sm:row-end-3">
                     <div
@@ -646,9 +677,7 @@ export default function Tasks() {
         isOpen={isPhotoModalOpen}
         onClose={() => setIsPhotoModalOpen(false)}
       >
-        {
-          <Photo360Viewer imageUrl="https://tsvabqmdcirbjnxq.s3.us-east-1.amazonaws.com/qvHDimMUqxZcQnsj/60a47baa-f271-4bad-9d39-a5a620d09fbf.jpeg" />
-        }
+        {selectedPhoto != "" && <Photo360Viewer imageUrl={selectedPhoto} />}
       </Modal>
       <TaskModal
         isOpen={isModalOpen}
