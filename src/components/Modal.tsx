@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
 type Props = {
   isOpen: boolean;
@@ -10,6 +10,7 @@ type Props = {
 
 export default function Modal({ isOpen, onClose, children }: Props) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [mouseDownOutside, setMouseDownOutside] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -21,23 +22,36 @@ export default function Modal({ isOpen, onClose, children }: Props) {
     };
 
     document.addEventListener("keydown", handleKeyDown);
-
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
 
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      setMouseDownOutside(true);
+    } else {
+      setMouseDownOutside(false);
+    }
+  };
+
+  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (
+      mouseDownOutside &&
+      modalRef.current &&
+      !modalRef.current.contains(e.target as Node)
+    ) {
       onClose();
     }
+    setMouseDownOutside(false);
   };
 
   if (!isOpen) return null;
 
   return (
     <div
-      onClick={handleOverlayClick}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
       className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black/70"
     >
       <div
