@@ -65,7 +65,8 @@ INNER JOIN statuses s ON s.id = tasks.status_id
 INNER JOIN floorplans f ON f.id = tasks.floorplan_id
 WHERE tasks.project_id = $1
 AND (
-    tasks.name ILIKE $2 
+    tasks.name ILIKE $2
+    OR cast(tasks.sequence_number as TEXT) ILIKE $2 
     OR f.name ILIKE $2
     OR s.name ILIKE $2
     OR f.description ILIKE $2
@@ -76,7 +77,8 @@ AND (
                           INNER JOIN floorplans f ON f.id = t.floorplan_id                         
                           WHERE t.project_id = $1
                           AND (
-                              t.name ILIKE $2 
+                              t.name ILIKE $2
+                              OR cast(t.sequence_number as TEXT) ILIKE $2 
                               OR f.name ILIKE $2
                               OR s.name ILIKE $2
                               OR f.description ILIKE $2
