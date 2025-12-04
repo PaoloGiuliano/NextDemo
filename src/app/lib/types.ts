@@ -31,6 +31,7 @@ export interface Status {
 export interface Task {
   id: string;
   name: string;
+  sequence_number: number;
   modified_at: string;
   project_id: string;
   status_id: string;

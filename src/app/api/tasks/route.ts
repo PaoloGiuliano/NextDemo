@@ -4,6 +4,7 @@ import { NextResponse, NextRequest } from "next/server";
 type Task = {
   id: string;
   name: string;
+  sequence_number: number;
   modified_at: string;
   latest_component_device_updated_at: string;
   project_id: string;

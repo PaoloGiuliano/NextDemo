@@ -3,6 +3,7 @@ import React from "react";
 type Task = {
   id: string;
   name: string;
+  sequence_number: number;
   updated_at: string;
   project_id: string;
   status_id: string;
@@ -36,10 +37,10 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, loading }) => {
 
   return (
     <div className="task-list">
-      <h1 className="text-2xl font-semibold mb-4">Task List</h1>
+      <h1 className="mb-4 text-2xl font-semibold">Task List</h1>
       <ul>
         {tasks.map((task) => (
-          <li key={task.id} className="mb-2 p-4 border rounded-md">
+          <li key={task.id} className="mb-2 rounded-md border p-4">
             <h3 className="text-xl font-medium">{task.name}</h3>
             <p></p>
             <span className="text-sm text-gray-500">Status: {task.pos_x}</span>

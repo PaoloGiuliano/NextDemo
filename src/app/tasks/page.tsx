@@ -408,7 +408,8 @@ export default function Tasks() {
                           document.documentElement.style.overflow = "hidden";
                         }}
                       >
-                        {task.name}
+                        {task.name + " "}
+                        <b className="italic"> #{task.sequence_number}</b>
                         <ArrowTurnDownRightIcon className="h-5 w-5" />
                       </button>
                     </h1>
