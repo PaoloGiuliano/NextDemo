@@ -14,7 +14,7 @@
     "@heroicons/react": "^2.2.0",
     "@photo-sphere-viewer/core": "^5.13.2",
     "cookie": "^1.0.2",
-    "next": "^15.2.4",
+    "next": "15.2.8",
     "next-auth": "^4.24.13",
     "pg": "^8.14.1",
     "react": "^19.0.0",
