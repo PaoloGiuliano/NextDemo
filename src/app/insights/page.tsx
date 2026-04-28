@@ -1,7 +1,8 @@
 export default function Insights() {
   return (
     <div>
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. In libero dolorem
+      TESTING IF GIT WORKFLOW AUTO DEPLYS AND UPDATES ON GIT CHANGE...Lorem
+      ipsum dolor sit amet consectetur adipisicing elit. In libero dolorem
       exercitationem consectetur. Suscipit ut maiores, distinctio ad facere quos
       exercitationem! Ea rerum quod deleniti neque a earum cupiditate eligendi
       nam. Recusandae itaque quibusdam praesentium cupiditate sequi vitae
