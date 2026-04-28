@@ -16,4 +16,4 @@ jobs:
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            /home/ubuntu/scripts/deploy_fwa.ssh
+            /home/ubuntu/scripts/deploy_fwa.sh
