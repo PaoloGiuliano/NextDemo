@@ -83,48 +83,49 @@ export default function CustomDropdown<
   return (
     <div
       hidden={items.length <= 0}
-      className={`relative inline-flex items-center gap-2 ${className}`}
+      className={`inline-flex items-center gap-2 ${className}`}
       ref={dropdownRef}
     >
       {title && <span className="text-sm text-gray-700">{title}:</span>}
-      <button
-        onClick={() => setOpen((prev) => !prev)}
-        className="rounded border border-gray-300 bg-white px-4 py-2 text-left hover:cursor-pointer"
-      >
-        {selected ? getDisplayName(selected) + " ⤵ " : placeholder + " ⤵ "}
-      </button>
 
-      {open && (
-        <ul className="absolute top-full right-0 z-20 mt-1 max-h-60 min-w-full overflow-auto rounded border border-gray-300 bg-white whitespace-nowrap shadow">
-          {items.map((item) => (
-            <li
-              key={getItemKey(item)}
-              onClick={() => {
-                setSelected(item);
-                setOpen(false);
-                console.log(getItemCount(item));
-              }}
-              className="cursor-pointer px-4 py-2 hover:bg-gray-100"
-              style={{ color: getItemColor(item) }}
-              // hidden={parseInt(getItemCount(item) || "2") >= 1 ? false : true}
-              hidden={parseInt(getItemCount(item) || "2") <= 0}
-            >
-              <div>
-                <div>{getDisplayName(item)}</div>
-                {(getItemDescription(item) || getItemCount(item)) && (
-                  <div className="text-xs text-gray-500">
-                    {getItemDescription(item)}
-                    {getItemDescription(item) && getItemCount(item)
-                      ? " - "
-                      : ""}
-                    {getItemCount(item) ? getItemCount(item) : ""}
-                  </div>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="relative">
+        <button
+          onClick={() => setOpen((prev) => !prev)}
+          className="rounded border border-gray-300 bg-white px-4 py-2 text-left hover:cursor-pointer"
+        >
+          {selected ? getDisplayName(selected) + " ⤵ " : placeholder + " ⤵ "}
+        </button>
+
+        {open && (
+          <ul className="absolute top-full left-0 z-20 mt-1 max-h-60 min-w-full overflow-auto rounded border border-gray-300 bg-white whitespace-nowrap shadow">
+            {items.map((item) => (
+              <li
+                key={getItemKey(item)}
+                onClick={() => {
+                  setSelected(item);
+                  setOpen(false);
+                }}
+                className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+                style={{ color: getItemColor(item) }}
+                hidden={parseInt(getItemCount(item) || "2") <= 0}
+              >
+                <div>
+                  <div>{getDisplayName(item)}</div>
+                  {(getItemDescription(item) || getItemCount(item)) && (
+                    <div className="text-xs text-gray-500">
+                      {getItemDescription(item)}
+                      {getItemDescription(item) && getItemCount(item)
+                        ? " - "
+                        : ""}
+                      {getItemCount(item) || ""}
+                    </div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
