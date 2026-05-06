@@ -1,131 +1,90 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
 
-type DropdownObject = {
+import {
+  Select,
+  Button,
+  ListBox,
+  ListBoxItem,
+  Popover,
+  SelectValue,
+  Label,
+} from "react-aria-components";
+
+type DropdownItem = {
   id: string;
-  name: string;
+  label: string;
+  description?: string;
   color?: string;
-  description?: string; // Added optional description field
-  count?: string; //Added optional count field
+  count?: number;
 };
 
-type Props<T extends DropdownObject | string | number> = {
-  items: T[];
-  selected: T | null;
-  setSelected: (item: T) => void;
+type Props = {
+  items: DropdownItem[];
+  selected: DropdownItem | null;
+  setSelected: (item: DropdownItem) => void;
   title?: string;
   placeholder?: string;
   className?: string;
 };
 
-export default function CustomDropdown<
-  T extends DropdownObject | string | number,
->({
+export default function CustomDropdown({
   items,
   selected,
   setSelected,
   title = "custom dropdown",
   placeholder = "Select an item",
   className = "",
-}: Props<T>) {
-  const [open, setOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const getDisplayName = (item: T): string => {
-    if (typeof item === "string" || typeof item === "number") {
-      return item.toString();
-    } else {
-      return item.name.toUpperCase();
-    }
-  };
-
-  const getItemKey = (item: T): string => {
-    if (typeof item === "string" || typeof item === "number") {
-      return item.toString();
-    } else {
-      return item.id;
-    }
-  };
-
-  const getItemColor = (item: T): string | undefined => {
-    return typeof item === "object" ? item.color : undefined;
-  };
-
-  const getItemDescription = (item: T): string | undefined => {
-    if (typeof item === "object" && "description" in item) {
-      return item.description;
-    }
-    return undefined; // No description for strings/numbers by default
-  };
-  const getItemCount = (item: T): string | undefined => {
-    if (typeof item === "object" && "count" in item) {
-      return item.count;
-    }
-  };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
+}: Props) {
   return (
-    <div
-      hidden={items.length <= 0}
-      className={`inline-flex items-center gap-2 ${className}`}
-      ref={dropdownRef}
+    <Select
+      selectedKey={selected?.id ?? null}
+      onSelectionChange={(key) => {
+        const found = items.find((i) => i.id === String(key));
+        if (found) setSelected(found);
+      }}
+      className={`inline-flex flex-col gap-1 ${className}`}
     >
-      {title && <span className="text-sm text-gray-700">{title}:</span>}
+      {/* Label */}
+      {title && <Label className="text-sm text-gray-700">{title}</Label>}
 
-      <div className="relative">
-        <button
-          onClick={() => setOpen((prev) => !prev)}
-          className="rounded border border-gray-300 bg-white px-4 py-2 text-left hover:cursor-pointer"
-        >
-          {selected ? getDisplayName(selected) + " ⤵ " : placeholder + " ⤵ "}
-        </button>
+      {/* Trigger */}
+      <Button className="flex items-center justify-between gap-2 rounded border border-gray-300 bg-white px-4 py-2 text-left">
+        <SelectValue>{selected ? selected.label : placeholder}</SelectValue>
+        <span aria-hidden>⤵</span>
+      </Button>
 
-        {open && (
-          <ul className="absolute top-full left-0 z-20 mt-1 max-h-60 min-w-full overflow-auto rounded border border-gray-300 bg-white whitespace-nowrap shadow">
-            {items.map((item) => (
-              <li
-                key={getItemKey(item)}
-                onClick={() => {
-                  setSelected(item);
-                  setOpen(false);
-                }}
-                className="cursor-pointer px-4 py-2 hover:bg-gray-100"
-                style={{ color: getItemColor(item) }}
-                hidden={parseInt(getItemCount(item) || "2") <= 0}
-              >
-                <div>
-                  <div>{getDisplayName(item)}</div>
-                  {(getItemDescription(item) || getItemCount(item)) && (
-                    <div className="text-xs text-gray-500">
-                      {getItemDescription(item)}
-                      {getItemDescription(item) && getItemCount(item)
-                        ? " - "
-                        : ""}
-                      {getItemCount(item) || ""}
-                    </div>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
+      {/* Dropdown */}
+      <Popover className="min-w-[180px]">
+        <ListBox className="max-h-60 overflow-auto rounded border border-gray-300 bg-white shadow">
+          {items.map((item) => (
+            <ListBoxItem
+              key={item.id}
+              id={item.id}
+              textValue={item.label}
+              style={{ color: item.color }}
+              className={({ isFocused, isSelected }) =>
+                [
+                  "cursor-pointer px-4 py-2",
+                  isFocused ? "bg-gray-100" : "",
+                  isSelected ? "font-semibold" : "",
+                ].join(" ")
+              }
+            >
+              <div>
+                <div>{item.label}</div>
+
+                {(item.description || item.count != null) && (
+                  <div className="text-xs text-gray-500">
+                    {item.description}
+                    {item.description && item.count != null ? " - " : ""}
+                    {item.count ?? ""}
+                  </div>
+                )}
+              </div>
+            </ListBoxItem>
+          ))}
+        </ListBox>
+      </Popover>
+    </Select>
   );
 }

@@ -14,7 +14,6 @@ import {
 import {
   MagnifyingGlassPlusIcon,
   MagnifyingGlassMinusIcon,
-  XCircleIcon,
 } from "@heroicons/react/24/outline";
 import TaskModal from "@/components/TaskModal";
 import Modal from "@/components/Modal";
@@ -193,6 +192,17 @@ export default function Tasks() {
     return () => clearTimeout(delay); // clean up on effect re-run
   }, [search]);
 
+  type DropdownItem = {
+    id: string;
+    label: string;
+  };
+
+  function toDropdownItem(item: any): DropdownItem {
+    return {
+      id: item.id,
+      label: item.label ?? item.name, // key fix
+    };
+  }
   // Waiting for selectedProject to exist before fetching Floorplans
   useEffect(() => {
     if (selectedProject) {
@@ -226,48 +236,73 @@ export default function Tasks() {
   return (
     <div className="w-[calc(100vw-17px)] p-5">
       {/* Dropdowns in a row */}
-      <div className="xl:item-center xs:grid xs:grid-cols-2 flex-col gap-4 lg:flex lg:flex-row lg:items-center xl:flex xl:flex-row">
+      <div className="grid grid-cols-2 gap-4 lg:flex lg:flex-row lg:items-center">
+        {/* ---------------- DROPDOWNS ---------------- */}
+        {[
+          {
+            title: "Project",
+            items: projects,
+            selected: selectedProject,
+            setSelected: (item: any) => {
+              const found = projects.find((p) => p.id === item.id);
+              if (found) setSelectedProject(found);
+            },
+          },
+          {
+            title: "Floorplan",
+            items: floorplans,
+            selected: selectedFloorplan,
+            setSelected: (item: any) => {
+              const found = floorplans.find((f) => f.id === item.id);
+              if (found) setSelectedFloorplan(found);
+            },
+          },
+          {
+            title: "Status",
+            items: statuses,
+            selected: selectedStatus,
+            setSelected: (item: any) => {
+              const found = statuses.find((s) => s.id === item.id);
+              if (found) setSelectedStatus(found);
+            },
+          },
+          {
+            title: "Page size",
+            items: pageCount.map((n) => ({ id: String(n), label: String(n) })),
+            selected: selectedPageCount
+              ? {
+                  id: String(selectedPageCount),
+                  label: String(selectedPageCount),
+                }
+              : null,
+            setSelected: (item: any) => setSelectedPageCount(Number(item.id)),
+          },
+        ].map((cfg) => (
+          <CustomDropdown
+            key={cfg.title}
+            items={cfg.items.map(toDropdownItem)}
+            selected={cfg.selected ? toDropdownItem(cfg.selected) : null}
+            setSelected={cfg.setSelected}
+            placeholder={`Select ${cfg.title}`}
+            title={cfg.title}
+          />
+        ))}
+
+        {/* ---------------- SORT ---------------- */}
         <CustomDropdown
-          items={projects}
-          selected={selectedProject}
-          setSelected={setSelectedProject}
-          placeholder="Select a Project"
-          title="Project"
+          items={[
+            { id: "ASC", label: "ASC ▲" },
+            { id: "DESC", label: "DESC ▼" },
+          ]}
+          selected={{ id: sortDirection, label: sortDirection }}
+          setSelected={(item) => setSortDirection(item.id as "ASC" | "DESC")}
+          title="Sort Order"
+          placeholder="Sort"
         />
-        <CustomDropdown
-          items={floorplans}
-          selected={selectedFloorplan}
-          setSelected={setSelectedFloorplan}
-          placeholder="Select a Floorplan"
-          title="Floorplan"
-        />
-        <CustomDropdown
-          items={statuses}
-          selected={selectedStatus}
-          setSelected={setSelectedStatus}
-          placeholder="Select a Status"
-          title="Status"
-        />
-        <CustomDropdown
-          items={pageCount}
-          selected={selectedPageCount}
-          setSelected={setSelectedPageCount}
-          placeholder="Tasks per page..."
-          title="Tasks per page"
-        />
-        <div className="inline-flex items-center gap-2">
-          <span className="text-sm text-gray-700">Sort Order:</span>
-          <button
-            className="rounded border border-gray-300 bg-white px-4 py-2 text-left hover:cursor-pointer"
-            onClick={() => {
-              setSortDirection(sortDirection === "ASC" ? "DESC" : "ASC");
-            }}
-          >
-            {sortDirection === "DESC" ? "DESC ▼" : "ASC ▲"}
-          </button>
-        </div>
+
+        {/* ---------------- SEARCH ---------------- */}
         <form
-          className="group relative flex items-center"
+          className="relative flex items-center gap-2"
           onSubmit={(e) => {
             e.preventDefault();
             fetchTasks(selectedProject, false);
@@ -275,6 +310,7 @@ export default function Tasks() {
             fetchFloorplans(selectedProject, selectedStatus);
           }}
         >
+          {/* Input */}
           <div className="relative m-2">
             <input
               className="m-2 rounded border border-gray-300 p-2"
@@ -283,45 +319,47 @@ export default function Tasks() {
               onChange={(e) => setSearch(e.target.value)}
             />
 
-            <button
-              className="absolute top-1/2 right-2 mx-2 -translate-y-1/2 rounded text-gray-500 hover:cursor-pointer"
-              type="button"
-              hidden={searchTasks.length <= 0}
-              onClick={() => setSearch("")}
-            >
-              <XCircleIcon className="h-5 w-5" />
-            </button>
+            {search && (
+              <button
+                className="absolute top-1/2 right-2 -translate-y-1/2 text-gray-500"
+                type="button"
+                onClick={() => setSearch("")}
+              >
+                ✕
+              </button>
+            )}
           </div>
 
-          <ul
-            className="absolute top-13 right-0 left-2 z-40 m-2 hidden rounded bg-gray-200/90 px-2 group-focus-within:block group-focus-within:border-2"
-            style={{ border: searchTasks.length <= 0 ? "none" : "2px solid" }}
-          >
-            {searchTasks?.map((task, index) => (
-              <li
-                key={task.id}
-                className=""
-                style={{
-                  borderTop: index !== 0 ? "2px solid black" : "none",
-                }}
-              >
-                <button
-                  className="border-black text-left text-black/70 hover:cursor-pointer hover:text-black"
-                  onMouseDown={(e) => {
-                    if (e.button === 0) {
-                      setIsModalOpen(true);
-                      setSelectedTask(task || null);
-                    }
+          {/* Results */}
+          {searchTasks.length > 0 && (
+            <ul className="absolute top-full left-2 z-40 m-2 rounded border-2 bg-gray-200/90 px-2">
+              {searchTasks.map((task, index) => (
+                <li
+                  key={task.id}
+                  style={{
+                    borderTop: index !== 0 ? "2px solid black" : "none",
                   }}
                 >
-                  {task.name}
-                </button>
-              </li>
-            ))}
-          </ul>
+                  <button
+                    className="text-left text-black/70 hover:text-black"
+                    type="button"
+                    onMouseDown={(e) => {
+                      if (e.button === 0) {
+                        setIsModalOpen(true);
+                        setSelectedTask(task || null);
+                      }
+                    }}
+                  >
+                    {task.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
 
+          {/* Submit */}
           <button
-            className="m-2 rounded border border-gray-200 p-2 hover:cursor-pointer"
+            className="m-2 rounded border border-gray-200 p-2"
             type="submit"
           >
             Search
@@ -622,9 +660,8 @@ export default function Tasks() {
             <button
               className="p-2 text-xl font-bold text-[#15448c] underline disabled:cursor-default disabled:opacity-0 md:text-2xl"
               disabled={
-                taskCount -
-                  (page + 1) * selectedPageCount +
-                  selectedPageCount <=
+                Number(taskCount ?? 0) -
+                  Number(page ?? 0) * Number(selectedPageCount ?? 1) <=
                 0
               }
               onClick={() => setPage(page)}
