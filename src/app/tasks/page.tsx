@@ -14,10 +14,25 @@ import {
 import {
   MagnifyingGlassPlusIcon,
   MagnifyingGlassMinusIcon,
-  XCircleIcon,
 } from "@heroicons/react/24/outline";
 import TaskModal from "@/components/TaskModal";
-import Modal from "@/components/Modal";
+import AppModal from "@/components/AppModal";
+
+// ── Module-level dynamic import — never recreated on re-render ──
+const Photo360Viewer = dynamic(() => import("@/components/Photo360Viewer"), {
+  ssr: false,
+});
+
+const DEFAULT_SCALE = 0.7;
+
+const authHeaders = (): Record<string, string> => {
+  const headers: Record<string, string> = {};
+  if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
+    headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
+  }
+  return headers;
+};
+
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -36,136 +51,173 @@ export default function Tasks() {
   const [selectedPageCount, setSelectedPageCount] = useState<number>(10);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [sortDirection, setSortDirection] = useState("DESC");
-  const [scale, setScale] = useState(0.7);
   const [search, setSearch] = useState("");
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState("");
-  const Photo360Viewer = dynamic(() => import("@/components/Photo360Viewer"), {
-    ssr: false,
-  });
+
+  // ── Hydration guard: Photo360Viewer uses browser-only APIs (WebGL/canvas).
+  //    Rendering server-side causes a mismatch → hydration error at line ~768.
+  //    Only mount it after the client has hydrated. ──
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  // ── Per-card scale keyed by task.id so each minimap zooms independently ──
+  const [scaleMap, setScaleMap] = useState<Record<string, number>>({});
+  const getScale = (taskId: string) => scaleMap[taskId] ?? DEFAULT_SCALE;
+  const setScale = (taskId: string, value: number) =>
+    setScaleMap((prev) => ({ ...prev, [taskId]: value }));
+  const resetScale = (taskId: string) =>
+    setScaleMap((prev) => ({ ...prev, [taskId]: DEFAULT_SCALE }));
+
+  // ── Per-card container refs so each floorplan minimap tracks its own size ──
+  const containerRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [dimensionsMap, setDimensionsMap] = useState<
+    Record<string, { width: number; height: number }>
+  >({});
+
+  useEffect(() => {
+    const observers: ResizeObserver[] = [];
+    tasks.forEach((task) => {
+      const el = containerRefs.current[task.id];
+      if (!el) return;
+      const ro = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const { width, height } = entry.contentRect;
+          setDimensionsMap((prev) => ({
+            ...prev,
+            [task.id]: { width, height },
+          }));
+        }
+      });
+      ro.observe(el);
+      observers.push(ro);
+    });
+    return () => observers.forEach((ro) => ro.disconnect());
+  }, [tasks]);
+
+  // ────────────────────── Fetch helpers ──────────────────────
 
   const fetchProjects = async () => {
     try {
-      const url = `/api/projects`;
-      const headers: Record<string, string> = {};
-      if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
-        headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
-      }
-      const response = await fetch(url, { method: "GET", headers });
+      const response = await fetch("/api/projects", {
+        method: "GET",
+        headers: authHeaders(),
+      });
       if (!response.ok) throw new Error("Failed to fetch projects");
-
-      const projects = await response.json();
-      setProjects(projects);
-
-      // Set the first project as the default selected project if available
-      if (projects.length > 0) {
-        setSelectedProject(projects[0]); // Set the first project as selected by default
-      }
+      const data: Project[] = await response.json();
+      setProjects(data);
+      if (data.length > 0) setSelectedProject(data[0]);
     } catch (error) {
       console.error("Error fetching projects:", error);
       setProjects([]);
     }
   };
+
   const fetchFloorplans = async (
     project: Project | null,
     status: Status | null,
   ) => {
     try {
-      const url = `/api/floorplans?project_id=${project ? project.id : ""}&status_id=${status ? status.id : ""}`;
-      const headers: Record<string, string> = {};
-      if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
-        headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
-      }
-      const response = await fetch(url, { method: "GET", headers });
+      const url = `/api/floorplans?project_id=${project?.id ?? ""}&status_id=${status?.id ?? ""}`;
+      const response = await fetch(url, {
+        method: "GET",
+        headers: authHeaders(),
+      });
       if (!response.ok) throw new Error("Failed to fetch floorplans");
-
-      const floorplans = await response.json();
-      setFloorplans(floorplans);
+      setFloorplans(await response.json());
     } catch (error) {
       console.error("Error fetching floorplans:", error);
       setFloorplans([]);
     }
   };
+
   const fetchStatuses = async (
     project: Project | null,
     floorplan: Floorplan | null,
   ) => {
     try {
-      const headers: Record<string, string> = {};
-      if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
-        headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
-      }
-      const url = `/api/statuses?project_id=${project ? project.id : ""}&floorplan_id=${floorplan ? floorplan.id : ""}`;
+      const url = `/api/statuses?project_id=${project?.id ?? ""}&floorplan_id=${floorplan?.id ?? ""}`;
       const response = await fetch(url, {
         method: "GET",
-        headers,
+        headers: authHeaders(),
       });
       if (!response.ok) throw new Error("Failed to fetch statuses");
-      const status = await response.json();
-      setStatuses(status);
+      setStatuses(await response.json());
     } catch (error) {
-      console.error("Error fetching statuses", error);
+      console.error("Error fetching statuses:", error);
       setStatuses([]);
     }
   };
 
   const fetchTasks = async (
     project: Project | null,
-    searchTasks: boolean | null,
+    opts: {
+      isSearch?: boolean;
+      status?: Status | null;
+      floorplan?: Floorplan | null;
+      pageNum?: number;
+      pageSize?: number;
+      sort?: string;
+      searchTerm?: string;
+    } = {},
   ) => {
+    const {
+      isSearch = false,
+      status = selectedStatus,
+      floorplan = selectedFloorplan,
+      pageNum = page,
+      pageSize = selectedPageCount,
+      sort = sortDirection,
+      searchTerm = search,
+    } = opts;
+
     try {
-      const headers: Record<string, string> = {};
-      if (process.env.NEXT_PUBLIC_INTERNAL_SECRET) {
-        headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_SECRET;
-      }
-      const url = `/api/tasks?project_id=${
-        project ? project.id : ""
-      }&status_id=${selectedStatus ? selectedStatus.id : ""}&floorplan_id=${
-        selectedFloorplan ? selectedFloorplan.id : ""
-      }&page=${page ? page : 0}&page_count=${selectedPageCount}&sort_directions=${sortDirection}&search=${search}`;
+      const url =
+        `/api/tasks?project_id=${project?.id ?? ""}` +
+        `&status_id=${status?.id ?? ""}` +
+        `&floorplan_id=${floorplan?.id ?? ""}` +
+        `&page=${pageNum}` +
+        `&page_count=${pageSize}` +
+        `&sort_directions=${sort}` +
+        `&search=${searchTerm}`;
+
       const response = await fetch(url, {
         method: "GET",
-        headers,
+        headers: authHeaders(),
       });
       if (!response.ok) throw new Error("Failed to fetch tasks");
-      const tasks = await response.json();
-      const taskCount = response.headers.get("x-task-count");
-      if (searchTasks) {
-        setSearchTasks(tasks);
+
+      const data: Task[] = await response.json();
+
+      if (isSearch) {
+        setSearchTasks(data);
       } else {
-        setTasks(tasks);
-        setTaskCount(taskCount ? parseInt(taskCount) : 0);
+        setTasks(data);
+        const count = response.headers.get("x-task-count");
+        setTaskCount(count ? parseInt(count) : 0);
       }
     } catch (error) {
       console.error("Error fetching tasks:", error);
-      setTasks([]);
+      if (!isSearch) setTasks([]);
     } finally {
-      setLoading(false);
+      if (!isSearch) setLoading(false);
     }
-  };
-  const navigatePage = (direction: string) => {
-    if (direction == "next") {
-      setPage(page + 1);
-    } else {
-      if (page != 0) setPage(page - 1);
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // ────────────────────── Effects ──────────────────────
+
   useEffect(() => {
-    fetchProjects(); // Fetch projects when the component mounts
+    fetchProjects();
   }, []);
 
   useEffect(() => {
-    setPage(0); // Reset page when filters change
+    setPage(0);
   }, [taskCount]);
 
   useEffect(() => {
     if (!selectedProject) return;
-    fetchTasks(selectedProject, false);
+    fetchTasks(selectedProject);
     fetchStatuses(selectedProject, selectedFloorplan);
     fetchFloorplans(selectedProject, selectedStatus);
   }, [
@@ -174,196 +226,199 @@ export default function Tasks() {
     selectedStatus,
     selectedFloorplan,
     sortDirection,
-    taskCount,
   ]);
+
   useEffect(() => {
     const delay = setTimeout(() => {
-      if (selectedProject) {
-        if (search == "") {
-          setSearchTasks([]);
-          fetchTasks(selectedProject, false);
-        } else {
-          fetchTasks(selectedProject, true);
-        }
-        fetchStatuses(selectedProject, selectedFloorplan);
-        fetchFloorplans(selectedProject, selectedStatus);
+      if (!selectedProject) return;
+      if (search === "") {
+        setSearchTasks([]);
+        fetchTasks(selectedProject);
+      } else {
+        fetchTasks(selectedProject, { isSearch: true });
       }
-    }, 150); // adjust debounce delay (ms) as needed
-
-    return () => clearTimeout(delay); // clean up on effect re-run
+    }, 150);
+    return () => clearTimeout(delay);
   }, [search]);
 
-  // Waiting for selectedProject to exist before fetching Floorplans
   useEffect(() => {
-    if (selectedProject) {
-      setSearch("");
-      fetchFloorplans(selectedProject, selectedStatus);
-      setSelectedFloorplan(null);
-      fetchStatuses(selectedProject, selectedFloorplan);
-      setSelectedStatus(null);
-      fetchTasks(selectedProject, false);
-    }
+    if (!selectedProject) return;
+    setSearch("");
+    setSelectedFloorplan(null);
+    setSelectedStatus(null);
+    fetchFloorplans(selectedProject, null);
+    fetchStatuses(selectedProject, null);
+    fetchTasks(selectedProject, { status: null, floorplan: null });
   }, [selectedProject]);
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        setDimensions({ width, height });
-      }
-    });
 
-    const el = containerRef.current;
-    if (el) {
-      resizeObserver.observe(el);
-    }
+  // ────────────────────── Helpers ──────────────────────
 
-    return () => {
-      if (el) {
-        resizeObserver.unobserve(el);
-      }
-    };
-  }, [tasks]);
+  const navigatePage = (direction: "next" | "back") => {
+    setPage((p) => (direction === "next" ? p + 1 : Math.max(0, p - 1)));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const lastPage = Math.max(0, Math.ceil(taskCount / selectedPageCount) - 1);
+
+  type DropdownItem = { id: string; label: string };
+  const toDropdownItem = (item: any): DropdownItem => ({
+    id: item.id,
+    label: item.label ?? item.name,
+  });
+
+  // ────────────────────── Render ──────────────────────
+
   return (
-    <div className="w-[calc(100vw-17px)] p-5">
-      {/* Dropdowns in a row */}
-      <div className="xl:item-center xs:grid xs:grid-cols-2 flex-col gap-4 lg:flex lg:flex-row lg:items-center xl:flex xl:flex-row">
+    <div className="w-full max-w-[calc(100vw-17px)] p-5">
+      {/* ── Filter bar ──
+          Mobile: 2-col grid, search spans full width below.
+          lg+: single flex row, all items bottom-aligned.
+      ── */}
+      <div className="grid grid-cols-2 items-end gap-3 lg:flex lg:flex-row lg:flex-wrap lg:items-end">
+        {[
+          {
+            title: "Project",
+            items: projects,
+            selected: selectedProject,
+            setSelected: (item: any) => {
+              const found = projects.find((p) => p.id === item.id);
+              if (found) setSelectedProject(found);
+            },
+          },
+          {
+            title: "Floorplan",
+            items: floorplans,
+            selected: selectedFloorplan,
+            setSelected: (item: any) => {
+              const found = floorplans.find((f) => f.id === item.id);
+              if (found) setSelectedFloorplan(found);
+            },
+          },
+          {
+            title: "Status",
+            items: statuses,
+            selected: selectedStatus,
+            setSelected: (item: any) => {
+              const found = statuses.find((s) => s.id === item.id);
+              if (found) setSelectedStatus(found);
+            },
+          },
+          {
+            title: "Page size",
+            items: pageCount.map((n) => ({ id: String(n), label: String(n) })),
+            selected: selectedPageCount
+              ? {
+                  id: String(selectedPageCount),
+                  label: String(selectedPageCount),
+                }
+              : null,
+            setSelected: (item: any) => setSelectedPageCount(Number(item.id)),
+          },
+        ].map((cfg) => (
+          <CustomDropdown
+            key={cfg.title}
+            items={cfg.items.map(toDropdownItem)}
+            selected={cfg.selected ? toDropdownItem(cfg.selected) : null}
+            setSelected={cfg.setSelected}
+            placeholder={`Select ${cfg.title}`}
+            title={cfg.title}
+          />
+        ))}
+
         <CustomDropdown
-          items={projects}
-          selected={selectedProject}
-          setSelected={setSelectedProject}
-          placeholder="Select a Project"
-          title="Project"
+          items={[
+            { id: "ASC", label: "ASC ▲" },
+            { id: "DESC", label: "DESC ▼" },
+          ]}
+          selected={{ id: sortDirection, label: sortDirection }}
+          setSelected={(item) => setSortDirection(item.id as "ASC" | "DESC")}
+          title="Sort Order"
+          placeholder="Sort"
         />
-        <CustomDropdown
-          items={floorplans}
-          selected={selectedFloorplan}
-          setSelected={setSelectedFloorplan}
-          placeholder="Select a Floorplan"
-          title="Floorplan"
-        />
-        <CustomDropdown
-          items={statuses}
-          selected={selectedStatus}
-          setSelected={setSelectedStatus}
-          placeholder="Select a Status"
-          title="Status"
-        />
-        <CustomDropdown
-          items={pageCount}
-          selected={selectedPageCount}
-          setSelected={setSelectedPageCount}
-          placeholder="Tasks per page..."
-          title="Tasks per page"
-        />
-        <div className="inline-flex items-center gap-2">
-          <span className="text-sm text-gray-700">Sort Order:</span>
-          <button
-            className="rounded border border-gray-300 bg-white px-4 py-2 text-left hover:cursor-pointer"
-            onClick={() => {
-              setSortDirection(sortDirection === "ASC" ? "DESC" : "ASC");
-            }}
-          >
-            {sortDirection === "DESC" ? "DESC ▼" : "ASC ▲"}
-          </button>
-        </div>
+
+        {/* Search — col-span-2 on mobile (full-width row), flex-1 on desktop */}
         <form
-          className="group relative flex items-center"
+          className="relative col-span-2 flex items-center gap-2 lg:col-span-1 lg:flex-1"
           onSubmit={(e) => {
             e.preventDefault();
-            fetchTasks(selectedProject, false);
-            fetchStatuses(selectedProject, selectedFloorplan);
-            fetchFloorplans(selectedProject, selectedStatus);
+            if (selectedProject) fetchTasks(selectedProject);
           }}
         >
-          <div className="relative m-2">
+          <div className="relative flex-1">
             <input
-              className="m-2 rounded border border-gray-300 p-2"
+              className="w-full rounded border border-gray-300 px-3 py-[7px] pr-8 text-sm focus:border-gray-400 focus:outline-none"
               value={search}
               placeholder="Search tasks..."
               onChange={(e) => setSearch(e.target.value)}
             />
-
-            <button
-              className="absolute top-1/2 right-2 mx-2 -translate-y-1/2 rounded text-gray-500 hover:cursor-pointer"
-              type="button"
-              hidden={searchTasks.length <= 0}
-              onClick={() => setSearch("")}
-            >
-              <XCircleIcon className="h-5 w-5" />
-            </button>
+            {search && (
+              <button
+                className="absolute top-1/2 right-2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                type="button"
+                aria-label="Clear search"
+                onClick={() => setSearch("")}
+              >
+                ✕
+              </button>
+            )}
           </div>
 
-          <ul
-            className="absolute top-13 right-0 left-2 z-40 m-2 hidden rounded bg-gray-200/90 px-2 group-focus-within:block group-focus-within:border-2"
-            style={{ border: searchTasks.length <= 0 ? "none" : "2px solid" }}
-          >
-            {searchTasks?.map((task, index) => (
-              <li
-                key={task.id}
-                className=""
-                style={{
-                  borderTop: index !== 0 ? "2px solid black" : "none",
-                }}
-              >
-                <button
-                  className="border-black text-left text-black/70 hover:cursor-pointer hover:text-black"
-                  onMouseDown={(e) => {
-                    if (e.button === 0) {
-                      setIsModalOpen(true);
-                      setSelectedTask(task || null);
-                    }
-                  }}
-                >
-                  {task.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-
           <button
-            className="m-2 rounded border border-gray-200 p-2 hover:cursor-pointer"
+            className="shrink-0 rounded border border-gray-300 px-3 py-[7px] text-sm hover:bg-gray-50"
             type="submit"
           >
             Search
           </button>
+
+          {/* Results dropdown */}
+          {searchTasks.length > 0 && (
+            <ul className="absolute top-full left-0 z-40 mt-1 max-h-64 w-full overflow-y-auto rounded border border-gray-200 bg-white shadow-lg">
+              {searchTasks.map((task, index) => (
+                <li
+                  key={task.id}
+                  className={index !== 0 ? "border-t border-gray-100" : ""}
+                >
+                  {/* onMouseDown fires before onBlur so the list doesn't close before the click registers */}
+                  <button
+                    className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                    type="button"
+                    onMouseDown={(e) => {
+                      if (e.button === 0) {
+                        setSelectedTask(task);
+                        setIsModalOpen(true);
+                        setSearch("");
+                        setSearchTasks([]);
+                      }
+                    }}
+                  >
+                    {task.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </form>
       </div>
 
-      {/* Pills */}
+      {/* ── Active filter pills ── */}
       <div className="mt-4 mb-4 flex flex-wrap gap-2">
         {selectedFloorplan && (
-          <div className="flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-800">
-            {selectedFloorplan.name}
-            <button
-              className="ml-2 font-bold text-gray-500 hover:cursor-pointer hover:text-gray-700"
-              onClick={() => {
-                setSelectedFloorplan(null);
-              }}
-            >
-              ×
-            </button>
-          </div>
+          <FilterPill
+            label={selectedFloorplan.name}
+            onRemove={() => setSelectedFloorplan(null)}
+          />
         )}
-
         {selectedStatus && (
-          <div
-            className="flex items-center rounded-full px-3 py-1 text-sm text-gray-800"
-            style={{ backgroundColor: `${selectedStatus.color}50` }}
-          >
-            {selectedStatus.name}
-            <button
-              onClick={() => {
-                setSelectedStatus(null);
-              }}
-              className="ml-2 font-bold text-gray-500 hover:cursor-pointer hover:text-gray-700"
-            >
-              ×
-            </button>
-          </div>
+          <FilterPill
+            label={selectedStatus.name}
+            color={selectedStatus.color}
+            onRemove={() => setSelectedStatus(null)}
+          />
         )}
       </div>
-      {/* Tasks Grid */}
-      <div className="grid w-full grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-2">
+
+      {/* ── Task grid ── */}
+      <div className="grid w-full grid-cols-1 gap-6 lg:grid-cols-2">
         {loading ? (
           Array.from({ length: selectedPageCount || 6 }).map((_, idx) => (
             <div
@@ -381,44 +436,40 @@ export default function Tasks() {
               (fp) => fp.id === task.floorplan_id,
             );
             const status = statuses.find((st) => st.id === task.status_id);
+            const dims = dimensionsMap[task.id] ?? { width: 0, height: 0 };
+            const scale = getScale(task.id);
+            const offsetX = dims.width / 2 - task.pos_x * scale;
+            const offsetY = dims.height / 2 - task.pos_y * scale;
 
-            const imgTargetX = task.pos_x;
-            const imgTargetY = task.pos_y;
-            const containerTargetX = dimensions.width / 2;
-            const containerTargetY = dimensions.height / 2;
-            const offsetX = containerTargetX - imgTargetX * scale;
-            const offsetY = containerTargetY - imgTargetY * scale;
+            const imageBubbles = task.bubbles.filter(
+              (b) => b.kind === 10 || b.kind === 11 || b.kind === 13,
+            );
 
             return (
               <div
                 key={task.id}
                 className="relative flex w-full flex-col justify-between rounded-sm bg-gray-100 p-4"
               >
+                {/* Card header */}
                 <div className="flex items-start justify-between border-b-2 border-gray-200">
                   <div>
                     <h1 className="text-sm text-gray-600 md:text-2xl">
                       <button
                         className="underline-offset-5 hover:cursor-pointer hover:text-gray-900 hover:underline"
                         onClick={() => {
+                          setSelectedTask(task);
                           setIsModalOpen(true);
-                          const selectedTask = tasks.find(
-                            (t) => t.id === task.id,
-                          );
-                          setSelectedTask(selectedTask || null);
-                          document.documentElement.style.overflow = "hidden";
                         }}
                       >
-                        {task.name + " "}
-                        <b className="italic"> #{task.sequence_number}</b>
+                        {task.name}{" "}
+                        <b className="italic">#{task.sequence_number}</b>
                         <ArrowTurnDownRightIcon className="h-5 w-5" />
                       </button>
                     </h1>
                     <div className="flex justify-between pt-1 pr-2 pb-1">
                       <p
                         className="text-xs font-bold sm:text-sm"
-                        style={{
-                          color: status?.color,
-                        }}
+                        style={{ color: status?.color }}
                       >
                         {status?.name}
                       </p>
@@ -429,149 +480,144 @@ export default function Tasks() {
                   </p>
                 </div>
 
+                {/* Card body */}
                 <div className="m-2 grid grid-cols-6 grid-rows-3 sm:grid-rows-2">
-                  {(() => {
-                    const imageBubbles = task.bubbles.filter(
-                      (b) => b.kind === 10 || b.kind === 11 || b.kind === 13,
-                    );
-
-                    if (imageBubbles.length === 0) {
-                      return (
-                        <div
-                          className=""
-                          style={{ height: `${dimensions.height / 2}px` }}
-                        >
-                          <p className="text-sm text-gray-500 italic">
-                            No images
-                          </p>
-                        </div>
-                      );
-                    }
-                    return imageBubbles.slice(-6).map((bubble) => (
+                  {imageBubbles.length === 0 ? (
+                    <div style={{ height: `${dims.height / 2}px` }}>
+                      <p className="text-sm text-gray-500 italic">No images</p>
+                    </div>
+                  ) : (
+                    imageBubbles.slice(-6).map((bubble) => (
                       <div key={bubble.id} className="relative">
                         {bubble.kind === 13 ? (
-                          <>
+                          // 360° photo — open viewer modal on click
+                          <button
+                            type="button"
+                            className="relative block h-full w-full"
+                            onClick={() => {
+                              setSelectedPhoto(bubble.file_url);
+                              setIsPhotoModalOpen(true);
+                            }}
+                          >
                             <img
-                              key={bubble.id}
                               src={bubble.thumb_url}
-                              alt="Bubble"
-                              className="h-full w-full object-cover py-1 pr-2 hover:cursor-pointer"
-                              onClick={() => {
-                                setIsPhotoModalOpen(true);
-                                setSelectedPhoto(bubble.file_url);
-                              }}
+                              alt="360° photo"
+                              className="h-full w-full object-cover py-1 pr-2"
                             />
                             <img
-                              className="pointer-events-none absolute top-1/2 left-1/2 w-1/3 translate-[-50%] py-1 pr-2 opacity-70 hover:cursor-pointer"
+                              className="pointer-events-none absolute top-1/2 left-1/2 w-1/3 -translate-x-1/2 -translate-y-1/2 opacity-70"
                               src="/360-deg.png"
+                              alt=""
                             />
-                          </>
+                          </button>
                         ) : (
                           <a
                             href={
-                              bubble.flattened_file_url
-                                ? bubble.flattened_file_url
-                                : bubble.original_url
-                                  ? bubble.original_url
-                                  : bubble.file_url
+                              bubble.flattened_file_url ||
+                              bubble.original_url ||
+                              bubble.file_url
                             }
-                            target="blank"
+                            target="_blank"
                             rel="noopener noreferrer"
                           >
                             <img
-                              key={bubble.id}
                               src={bubble.thumb_url}
-                              alt="Bubble"
+                              alt="Attachment"
                               className="h-full w-full object-cover py-1 pr-2 hover:cursor-pointer"
                             />
                           </a>
                         )}
                       </div>
-                    ));
-                  })()}
+                    ))
+                  )}
+
+                  {/* Floorplan minimap */}
                   <div className="col-start-3 col-end-7 row-start-1 row-end-4 flex flex-col sm:col-start-4 sm:row-end-3">
                     <div
-                      ref={containerRef}
+                      ref={(el) => {
+                        containerRefs.current[task.id] = el;
+                      }}
                       className="relative h-full w-full overflow-hidden rounded bg-white ring-gray-300 sm:rounded-sm sm:ring-1"
                     >
                       <a
-                        className=""
                         href={floorplan?.sheets[0].original_url}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
                         <img
                           className="absolute top-0 left-0 max-h-none max-w-none"
-                          alt="floorplan"
+                          alt="Floorplan"
                           src={
                             floorplan?.sheets[0].file_url ||
                             "/Image-not-found.png"
                           }
                           style={{
-                            transformOrigin: `top left`,
+                            transformOrigin: "top left",
                             transform: `scale(${scale}) translate(${offsetX / scale}px, ${offsetY / scale}px)`,
                             objectFit: "cover",
                           }}
                         />
                       </a>
+
                       <div
-                        className="pointer-events-none absolute z-10 h-4 w-4 translate-x-[-50%] translate-y-[-50%] rounded-2xl sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
-                        style={{
-                          top: `50%`,
-                          left: `50%`,
-                        }}
+                        className="pointer-events-none absolute z-10 h-4 w-4 -translate-x-1/2 -translate-y-1/2 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
+                        style={{ top: "50%", left: "50%" }}
                       >
                         <MapPinIcon
-                          className="pointer-events-none h-full w-full translate-y-[-10px]"
+                          className="pointer-events-none h-full w-full -translate-y-[10px]"
                           style={{
-                            color: `${status ? status.color : "#000000"}`,
-                            fill: `${status ? status.color : "#FFFFFF"}CC`,
+                            color: status?.color ?? "#000000",
+                            fill: `${status?.color ?? "#FFFFFF"}CC`,
                             stroke: "#000000",
                           }}
                         />
                       </div>
-                      <div className="absolute top-0 right-0 left-0 bg-black/75 p-1 text-left md:p-2">
-                        <p
-                          className="text-center text-xs text-white md:text-sm xl:text-base 2xl:text-lg"
-                          style={{}}
-                        >
+
+                      <div className="absolute inset-x-0 top-0 bg-black/75 p-1 text-center md:p-2">
+                        <p className="text-xs text-white md:text-sm xl:text-base 2xl:text-lg">
                           {floorplan?.description} - {floorplan?.name}
                         </p>
                       </div>
+
                       <div className="absolute right-0 bottom-0 flex justify-end space-x-2 rounded-tl bg-black/60 p-1 md:p-2">
                         <button
                           className="hover:cursor-pointer disabled:cursor-default disabled:opacity-50"
-                          onClick={() => setScale(scale - 0.1)}
+                          onClick={() =>
+                            setScale(
+                              task.id,
+                              parseFloat((scale - 0.1).toFixed(1)),
+                            )
+                          }
                           disabled={scale <= 0.3}
+                          aria-label="Zoom out"
                         >
-                          <MagnifyingGlassMinusIcon
-                            className="h-5 lg:h-6"
-                            style={{ color: "white" }}
-                          />
+                          <MagnifyingGlassMinusIcon className="h-5 text-white lg:h-6" />
                         </button>
                         <button
                           className="hover:cursor-pointer disabled:cursor-default disabled:opacity-50"
-                          onClick={() => setScale(scale + 0.1)}
+                          onClick={() =>
+                            setScale(
+                              task.id,
+                              parseFloat((scale + 0.1).toFixed(1)),
+                            )
+                          }
                           disabled={scale >= 5}
+                          aria-label="Zoom in"
                         >
-                          <MagnifyingGlassPlusIcon
-                            className="h-5 lg:h-6"
-                            style={{ color: "white" }}
-                          />
+                          <MagnifyingGlassPlusIcon className="h-5 text-white lg:h-6" />
                         </button>
                       </div>
 
-                      <div
-                        hidden={scale == 0.7}
-                        className="absolute bottom-0 left-0 rounded-tr bg-black/60 p-1 md:p-2"
-                      >
-                        <button
-                          className="rounded px-1 text-xs text-white hover:cursor-pointer md:text-sm"
-                          onClick={() => setScale(0.7)}
-                        >
-                          RESET ZOOM
-                        </button>
-                      </div>
+                      {scale !== DEFAULT_SCALE && (
+                        <div className="absolute bottom-0 left-0 rounded-tr bg-black/60 p-1 md:p-2">
+                          <button
+                            className="rounded px-1 text-xs text-white hover:cursor-pointer md:text-sm"
+                            onClick={() => resetScale(task.id)}
+                          >
+                            Reset zoom
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -581,118 +627,159 @@ export default function Tasks() {
         )}
       </div>
 
-      {/* Pagination */}
-      <div className="mt-5 flex w-full items-center justify-center">
-        <div className="flex text-lg hover:cursor-pointer md:text-xl">
-          <button
-            disabled={page <= 0}
-            className="group hover:cursor-pointer disabled:cursor-default disabled:opacity-0"
-            onClick={() => {
-              setPage(0);
-            }}
-          >
-            <ChevronDoubleLeftIcon className="h-10 w-10 fill-gray-600 text-gray-800 group-disabled:fill-[#15448c] group-disabled:opacity-50 hover:fill-[#15448c] md:h-12 md:w-12" />
-          </button>
-          <button
-            disabled={page <= 0}
-            className="group hover:cursor-pointer disabled:cursor-default disabled:opacity-0"
-            onClick={() => {
-              navigatePage("back");
-            }}
-          >
-            <ChevronLeftIcon className="h-10 w-10 fill-gray-600 text-gray-800 group-disabled:fill-[#15448c] group-disabled:opacity-50 hover:fill-[#15448c] md:h-12 md:w-12" />
-          </button>
-
-          <div className="flex">
-            {Array.from({ length: 3 }, (_, i) => {
-              const setPageIndex = -3 + i;
-              const disableIndex = -2 + i;
-
-              return (
-                <button
-                  key={i}
-                  className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
-                  hidden={page + disableIndex < 1}
-                  onClick={() => setPage(page + setPageIndex)}
-                >
-                  {page + disableIndex < 1 ? "0" : page + disableIndex}
-                </button>
-              );
-            })}
-            <button
-              className="p-2 text-xl font-bold text-[#15448c] underline disabled:cursor-default disabled:opacity-0 md:text-2xl"
-              disabled={
-                taskCount -
-                  (page + 1) * selectedPageCount +
-                  selectedPageCount <=
-                0
-              }
-              onClick={() => setPage(page)}
+      {/* ── Pagination ──
+          Gated on `mounted` so the server never renders this block.
+          `disabled` values depend on `taskCount` which is 0 on the server
+          but resolves after the first fetch — rendering it SSR causes a
+          disabled={true} vs disabled={null} mismatch (the hydration error).
+      ── */}
+      {mounted && (
+        <div className="mt-5 flex w-full items-center justify-center">
+          <div className="flex text-lg md:text-xl">
+            <PaginationButton
+              onClick={() => setPage(0)}
+              disabled={page <= 0}
+              aria-label="First page"
             >
-              {taskCount - (page + 1) * selectedPageCount + selectedPageCount <=
-              0
-                ? "0"
-                : page + 1}
-            </button>
-            {Array.from({ length: 3 }, (_, i) => {
-              const setPageIndex = 1 + i;
-              const disableIndex = 2 + i;
+              <ChevronDoubleLeftIcon className="h-10 w-10 fill-gray-600 group-disabled:opacity-50 hover:fill-[#15448c] md:h-12 md:w-12" />
+            </PaginationButton>
+            <PaginationButton
+              onClick={() => navigatePage("back")}
+              disabled={page <= 0}
+              aria-label="Previous page"
+            >
+              <ChevronLeftIcon className="h-10 w-10 fill-gray-600 group-disabled:opacity-50 hover:fill-[#15448c] md:h-12 md:w-12" />
+            </PaginationButton>
+
+            {[-2, -1, 0, 1, 2].map((offset) => {
+              const p = page + offset;
+              if (p < 0 || p > lastPage) return null;
+              const isCurrent = offset === 0;
               return (
                 <button
-                  key={i}
-                  className="p-2 hover:cursor-pointer hover:font-bold hover:underline disabled:cursor-default disabled:opacity-0"
-                  hidden={
-                    taskCount -
-                      (page + disableIndex) * selectedPageCount +
-                      selectedPageCount <=
-                    0
-                  }
-                  onClick={() => setPage(page + setPageIndex)}
+                  key={offset}
+                  onClick={() => setPage(p)}
+                  className={`p-2 hover:cursor-pointer hover:font-bold hover:underline ${
+                    isCurrent
+                      ? "text-xl font-bold text-[#15448c] underline md:text-2xl"
+                      : "text-gray-700"
+                  }`}
                 >
-                  {page + disableIndex < 1 ? "0" : page + disableIndex}
+                  {p + 1}
                 </button>
               );
             })}
+
+            <PaginationButton
+              onClick={() => navigatePage("next")}
+              disabled={page >= lastPage}
+              aria-label="Next page"
+            >
+              <ChevronRightIcon className="h-10 w-10 fill-gray-600 group-disabled:opacity-50 hover:fill-gray-400 md:h-12 md:w-12" />
+            </PaginationButton>
+            <PaginationButton
+              onClick={() => setPage(lastPage)}
+              disabled={page >= lastPage}
+              aria-label="Last page"
+            >
+              <ChevronDoubleRightIcon className="h-10 w-10 fill-gray-600 group-disabled:opacity-50 hover:fill-gray-400 md:h-12 md:w-12" />
+            </PaginationButton>
           </div>
-          <button
-            disabled={taskCount - (page + 1) * selectedPageCount <= 0}
-            className="group hover:cursor-pointer disabled:cursor-default disabled:opacity-0"
-            onClick={() => {
-              navigatePage("next");
-            }}
-          >
-            <ChevronRightIcon className="h-10 w-10 fill-gray-600 text-gray-800 group-disabled:fill-gray-400 hover:fill-gray-400 md:h-12 md:w-12" />
-          </button>
-          <button
-            disabled={taskCount - (page + 1) * selectedPageCount <= 0}
-            className="group hover:cursor-pointer disabled:cursor-default disabled:opacity-0"
-            onClick={() => {
-              setPage(Math.floor(taskCount / selectedPageCount));
-            }}
-          >
-            <ChevronDoubleRightIcon className="h-10 w-10 fill-gray-600 text-gray-800 group-disabled:fill-gray-400 hover:fill-gray-400 md:h-12 md:w-12" />
-          </button>
         </div>
-      </div>
-      <Modal
-        isOpen={isPhotoModalOpen}
-        onClose={() => setIsPhotoModalOpen(false)}
-      >
-        {selectedPhoto != "" && <Photo360Viewer imageUrl={selectedPhoto} />}
-      </Modal>
-      <TaskModal
+      )}
+
+      {/* ── Task detail modal ── */}
+      <AppModal
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          document.documentElement.style.overflow = "";
+        onOpenChange={setIsModalOpen}
+        className="h-[95vh]"
+      >
+        <TaskModal
+          onClose={() => setIsModalOpen(false)}
+          task={selectedTask}
+          status={
+            statuses.find((s) => s.id === selectedTask?.status_id) || null
+          }
+          floorplan={
+            floorplans.find((f) => f.id === selectedTask?.floorplan_id) || null
+          }
+          statuses={statuses}
+        />
+      </AppModal>
+
+      {/* ── 360° photo modal ──
+          Three requirements for Photo360Viewer to fill the space:
+          1. Modal needs an explicit pixel height — height:100% on the viewer's
+             canvas won't resolve against aspect-ratio or max-h alone.
+          2. Dialog (inside AppModal) needs h-full via dialogClassName so it
+             doesn't collapse to 0 and starve the viewer of height.
+          3. `mounted` guard prevents server-side rendering of browser-only
+             WebGL/canvas APIs, which was the hydration error source.
+      ── */}
+      <AppModal
+        isOpen={isPhotoModalOpen}
+        onOpenChange={(open) => {
+          setIsPhotoModalOpen(open);
+          if (!open) setSelectedPhoto("");
         }}
-        task={selectedTask}
-        status={statuses.find((s) => s.id == selectedTask?.status_id) || null}
-        floorplan={
-          floorplans.find((f) => f.id === selectedTask?.floorplan_id) || null
-        }
-        statuses={statuses}
-      ></TaskModal>
+        className="h-[56vw] max-h-[90vh] w-full max-w-5xl"
+        dialogClassName="h-full"
+      >
+        {mounted && selectedPhoto && (
+          <Photo360Viewer imageUrl={selectedPhoto} />
+        )}
+      </AppModal>
     </div>
+  );
+}
+
+// ────────────────────── Reusable components ──────────────────────
+
+function FilterPill({
+  label,
+  color,
+  onRemove,
+}: {
+  label: string;
+  color?: string;
+  onRemove: () => void;
+}) {
+  return (
+    <div
+      className="flex items-center rounded-full px-3 py-1 text-sm text-gray-800"
+      style={{ backgroundColor: color ? `${color}50` : "#f3f4f6" }}
+    >
+      {label}
+      <button
+        className="ml-2 font-bold text-gray-500 hover:cursor-pointer hover:text-gray-700"
+        onClick={onRemove}
+        aria-label={`Remove ${label} filter`}
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
+function PaginationButton({
+  onClick,
+  disabled,
+  children,
+  "aria-label": ariaLabel,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  children: React.ReactNode;
+  "aria-label": string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      className="group hover:cursor-pointer disabled:cursor-default disabled:opacity-0"
+    >
+      {children}
+    </button>
   );
 }
