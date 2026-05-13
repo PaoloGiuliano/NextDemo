@@ -28,8 +28,13 @@ export default function TaskModal({
   floorplan,
   statuses,
 }: TaskModalProps) {
+  const imageRef = useRef<HTMLImageElement | null>(null);
   const imageDivRef = useRef<HTMLDivElement | null>(null);
 
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
   const [imageDivDimensions, setImageDivDimensions] = useState({
     width: 0,
     height: 0,
@@ -48,17 +53,30 @@ export default function TaskModal({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const imgEl = imageRef.current;
+    if (!imgEl) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        setImageDimensions({ width, height });
+      }
+    });
+    observer.observe(imgEl);
+    return () => observer.disconnect();
+  }, []);
+
   const imageHeight = floorplan?.sheets?.[0]?.file_height || 0;
   const imageWidth = floorplan?.sheets?.[0]?.file_width || 0;
   const posX = task?.pos_x || 0;
   const posY = task?.pos_y || 0;
 
-  // Pin position is calculated relative to the container directly,
-  // since a PDF iframe doesn't expose rendered pixel dimensions.
   const markerX =
-    imageWidth > 0 ? (posX / imageWidth) * imageDivDimensions.width : 0;
+    imageWidth > 0 ? (posX / imageWidth) * imageDimensions.width : 0;
   const markerY =
-    imageHeight > 0 ? (posY / imageHeight) * imageDivDimensions.height : 0;
+    imageHeight > 0 ? (posY / imageHeight) * imageDimensions.height : 0;
+  const offsetX = (imageDivDimensions.width - imageDimensions.width) / 2;
+  const offsetY = (imageDivDimensions.height - imageDimensions.height) / 2;
 
   const statusColor = status?.color || "#e5e7eb";
   const textColor = getContrastTextColor(statusColor);
@@ -74,8 +92,6 @@ export default function TaskModal({
     task?.due_at ||
     task?.fixed_at ||
     task?.verified_at;
-
-  const pdfUrl = floorplan?.sheets?.[0]?.original_url;
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white">
@@ -105,6 +121,11 @@ export default function TaskModal({
       </header>
 
       {/* ── Body ── */}
+      {/*
+        Layout strategy:
+          Mobile  : single column, sections stack vertically, each scrolls internally
+          Desktop : two-column — left col holds floorplan + meta rows; right col is the activity feed
+      */}
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 lg:flex-row lg:overflow-hidden lg:p-4">
         {/* ── Left column ── */}
         <div className="flex flex-col gap-3 lg:min-h-0 lg:w-[55%]">
@@ -120,26 +141,26 @@ export default function TaskModal({
               </p>
             )}
 
-            {pdfUrl ? (
-              <iframe
-                src={pdfUrl}
-                title="Floorplan PDF"
-                className="h-full w-full border-0"
-                // Allow the browser PDF viewer's own zoom/pan controls
-              />
-            ) : (
+            <a
+              href={floorplan?.sheets?.[0]?.original_url || undefined}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-full w-full items-center justify-center"
+              tabIndex={floorplan ? 0 : -1}
+            >
               <img
-                src="/Image-not-found.png"
-                alt="Floorplan not available"
+                ref={imageRef}
+                src={floorplan?.sheets?.[0]?.file_url || "/Image-not-found.png"}
+                alt="Floorplan"
                 className="max-h-full max-w-full object-contain"
               />
-            )}
+            </a>
 
             {/* Map pin marker */}
             {floorplan && (
               <div
                 className="pointer-events-none absolute z-20 h-8 w-8 -translate-x-1/2 -translate-y-1/2"
-                style={{ top: markerY, left: markerX }}
+                style={{ top: markerY + offsetY, left: markerX + offsetX }}
               >
                 <MapPinIcon
                   className="-translate-y-4"
